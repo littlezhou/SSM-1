@@ -49,6 +49,7 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hdfs.TestBlockStoragePolicy;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
+import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.server.blockmanagement.BlockManager.StatefulBlockInfo;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants;
 import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.BlockUCState;
@@ -971,11 +972,11 @@ public class TestReplicationPolicy extends BaseReplicationPolicyTest {
       // test returning null
       excessTypes.add(StorageType.SSD);
       assertNull(((BlockPlacementPolicyDefault) replicator)
-          .chooseReplicaToDelete((short) 3, first, second, excessTypes));
+          .chooseReplicaToDelete(first, second, excessTypes));
     }
     excessTypes.add(StorageType.DEFAULT);
     DatanodeStorageInfo chosen = ((BlockPlacementPolicyDefault) replicator)
-        .chooseReplicaToDelete((short) 3, first, second, excessTypes);
+        .chooseReplicaToDelete(first, second, excessTypes);
     // Within first set, storages[1] with less free space
     assertEquals(chosen, storages[1]);
 
@@ -985,21 +986,29 @@ public class TestReplicationPolicy extends BaseReplicationPolicyTest {
     // Within second set, storages[5] with less free space
     excessTypes.add(StorageType.DEFAULT);
     chosen = ((BlockPlacementPolicyDefault) replicator).chooseReplicaToDelete(
-        (short)2, first, second, excessTypes);
+        first, second, excessTypes);
     assertEquals(chosen, storages[5]);
   }
 
   @Test
   public void testChooseReplicasToDelete() throws Exception {
-    Collection<DatanodeStorageInfo> nonExcess = new ArrayList<DatanodeStorageInfo>();
+    Collection<DatanodeStorageInfo> nonExcess = new ArrayList<>();
     nonExcess.add(storages[0]);
     nonExcess.add(storages[1]);
     nonExcess.add(storages[2]);
     nonExcess.add(storages[3]);
-    List<DatanodeStorageInfo> excessReplicas = new ArrayList<>();
+    List<DatanodeStorageInfo> excessReplicas;
     BlockStoragePolicySuite POLICY_SUITE = BlockStoragePolicySuite
         .createDefaultSuite();
     BlockStoragePolicy storagePolicy = POLICY_SUITE.getDefaultPolicy();
+    DatanodeStorageInfo excessSSD = DFSTestUtil.createDatanodeStorageInfo(
+        "Storage-excess-SSD-ID", "localhost",
+        storages[0].getDatanodeDescriptor().getNetworkLocation(),
+        "foo.com", StorageType.SSD, null);
+    updateHeartbeatWithUsage(excessSSD.getDatanodeDescriptor(),
+        2* HdfsServerConstants.MIN_BLOCKS_FOR_WRITE*BLOCK_SIZE, 0L,
+        2* HdfsServerConstants.MIN_BLOCKS_FOR_WRITE*BLOCK_SIZE, 0L, 0L, 0L, 0,
+        0);
 
     // use delete hint case.
 
@@ -1008,50 +1017,111 @@ public class TestReplicationPolicy extends BaseReplicationPolicyTest {
         DatanodeStorageInfo.toStorageTypes(nonExcess));
     excessReplicas = replicator.chooseReplicasToDelete(nonExcess, 3,
         excessTypes, storages[3].getDatanodeDescriptor(), delHintNode);
-    assertTrue(excessReplicas.size() > 0);
+    assertTrue(excessReplicas.size() == 1);
     assertTrue(excessReplicas.contains(storages[0]));
 
     // Excess type deletion
 
     DatanodeStorageInfo excessStorage = DFSTestUtil.createDatanodeStorageInfo(
         "Storage-excess-ID", "localhost", delHintNode.getNetworkLocation(),
-        "foo.com", StorageType.ARCHIVE);
+        "foo.com", StorageType.ARCHIVE, null);
     nonExcess.add(excessStorage);
     excessTypes = storagePolicy.chooseExcess((short) 3,
         DatanodeStorageInfo.toStorageTypes(nonExcess));
     excessReplicas = replicator.chooseReplicasToDelete(nonExcess, 3,
         excessTypes, storages[3].getDatanodeDescriptor(), null);
     assertTrue(excessReplicas.contains(excessStorage));
+
+
+    // The block was initially created on excessSSD(rack r1),
+    // storages[4](rack r3) and storages[5](rack r3) with
+    // ONESSD_STORAGE_POLICY_NAME storage policy.
+    // Right after balancer moves the block from storages[5] to
+    // storages[3](rack r2), the application changes the storage policy from
+    // ONESSD_STORAGE_POLICY_NAME to HOT_STORAGE_POLICY_ID. In this case,
+    // no replica can be chosen as the excessive replica as
+    // chooseReplicasToDelete only considers storages[4] and storages[5] that
+    // are the same rack. But neither's storage type is SSD.
+    // TODO BlockPlacementPolicyDefault should be able to delete excessSSD.
+    nonExcess.clear();
+    nonExcess.add(excessSSD);
+    nonExcess.add(storages[3]);
+    nonExcess.add(storages[4]);
+    nonExcess.add(storages[5]);
+    excessTypes = storagePolicy.chooseExcess((short) 3,
+        DatanodeStorageInfo.toStorageTypes(nonExcess));
+    excessReplicas = replicator.chooseReplicasToDelete(nonExcess, 3,
+        excessTypes, storages[3].getDatanodeDescriptor(),
+        storages[5].getDatanodeDescriptor());
+    assertTrue(excessReplicas.size() == 0);
   }
 
  @Test
   public void testUseDelHint() throws Exception {
-    List<StorageType> excessTypes = new ArrayList<StorageType>();
+    List<StorageType> excessTypes = new ArrayList<>();
     excessTypes.add(StorageType.ARCHIVE);
-    // only consider delHint for the first case
-    assertFalse(BlockPlacementPolicyDefault.useDelHint(false, null, null, null,
-        null));
+   BlockPlacementPolicyDefault policyDefault =
+       (BlockPlacementPolicyDefault) replicator;
     // no delHint
-    assertFalse(BlockPlacementPolicyDefault.useDelHint(true, null, null, null,
-        null));
+    assertFalse(policyDefault.useDelHint(null, null, null, null, null));
     // delHint storage type is not an excess type
-    assertFalse(BlockPlacementPolicyDefault.useDelHint(true, storages[0], null,
-        null, excessTypes));
+    assertFalse(policyDefault.useDelHint(storages[0], null, null, null,
+        excessTypes));
     // check if removing delHint reduces the number of racks
-    List<DatanodeStorageInfo> chosenNodes = new ArrayList<DatanodeStorageInfo>();
-    chosenNodes.add(storages[0]);
-    chosenNodes.add(storages[2]);
+    List<DatanodeStorageInfo> moreThanOne = new ArrayList<>();
+    moreThanOne.add(storages[0]);
+    moreThanOne.add(storages[1]);
+    List<DatanodeStorageInfo> exactlyOne = new ArrayList<>();
+    exactlyOne.add(storages[3]);
+    exactlyOne.add(storages[5]);
+
     excessTypes.add(StorageType.DEFAULT);
-    assertTrue(BlockPlacementPolicyDefault.useDelHint(true, storages[0], null,
-        chosenNodes, excessTypes));
+    assertTrue(policyDefault.useDelHint(storages[0], null, moreThanOne,
+            exactlyOne, excessTypes));
     // the added node adds a new rack
-    assertTrue(BlockPlacementPolicyDefault.useDelHint(true, storages[3],
-        storages[5], chosenNodes, excessTypes));
+    assertTrue(policyDefault.useDelHint(storages[3], storages[5], moreThanOne,
+        exactlyOne, excessTypes));
     // removing delHint reduces the number of racks;
-    assertFalse(BlockPlacementPolicyDefault.useDelHint(true, storages[3],
-        storages[0], chosenNodes, excessTypes));
-    assertFalse(BlockPlacementPolicyDefault.useDelHint(true, storages[3], null,
-        chosenNodes, excessTypes));
+    assertFalse(policyDefault.useDelHint(storages[3], storages[0], moreThanOne,
+        exactlyOne, excessTypes));
+    assertFalse(policyDefault.useDelHint(storages[3], null, moreThanOne,
+        exactlyOne, excessTypes));
+  }
+
+  @Test
+  public void testIsMovable() throws Exception {
+    List<DatanodeInfo> candidates = new ArrayList<>();
+
+    // after the move, the number of racks remains 2.
+    candidates.add(dataNodes[0]);
+    candidates.add(dataNodes[1]);
+    candidates.add(dataNodes[2]);
+    candidates.add(dataNodes[3]);
+    assertTrue(replicator.isMovable(candidates, dataNodes[0], dataNodes[3]));
+
+    // after the move, the number of racks remains 3.
+    candidates.clear();
+    candidates.add(dataNodes[0]);
+    candidates.add(dataNodes[1]);
+    candidates.add(dataNodes[2]);
+    candidates.add(dataNodes[4]);
+    assertTrue(replicator.isMovable(candidates, dataNodes[0], dataNodes[1]));
+
+    // after the move, the number of racks changes from 2 to 3.
+    candidates.clear();
+    candidates.add(dataNodes[0]);
+    candidates.add(dataNodes[1]);
+    candidates.add(dataNodes[2]);
+    candidates.add(dataNodes[4]);
+    assertTrue(replicator.isMovable(candidates, dataNodes[0], dataNodes[4]));
+
+    // the move would have reduced the number of racks from 3 to 2.
+    candidates.clear();
+    candidates.add(dataNodes[0]);
+    candidates.add(dataNodes[2]);
+    candidates.add(dataNodes[3]);
+    candidates.add(dataNodes[4]);
+    assertFalse(replicator.isMovable(candidates, dataNodes[0], dataNodes[3]));
   }
 
   /**

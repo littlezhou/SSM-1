@@ -301,6 +301,15 @@
   <description>Decide if chooseTarget considers the target's load or not
   </description>
 </property>
+
+  <property>
+    <name>dfs.namenode.replication.considerLoad.factor</name>
+    <value>2.0</value>
+    <description>The factor by which a node's load can exceed the average
+      before being rejected for writes, only if considerLoad is true.
+    </description>
+  </property>
+
 <property>
   <name>dfs.default.chunk.view.size</name>
   <value>32768</value>
@@ -2470,14 +2479,6 @@
   <value>1,5,25</value>
   <description>comma separated list of nntop reporting periods in minutes
   </description>
-</property>
-
-<property>
-    <name>dfs.webhdfs.ugi.expire.after.access</name>
-    <value>600000</value>
-    <description>How long in milliseconds after the last access
-      the cached UGI will expire. With 0, never expire.
-    </description>
 </property>
 
 <property>

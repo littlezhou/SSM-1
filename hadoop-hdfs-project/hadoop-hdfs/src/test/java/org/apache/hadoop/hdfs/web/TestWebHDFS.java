@@ -20,6 +20,7 @@ package org.apache.hadoop.hdfs.web;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.io.EOFException;
@@ -38,10 +39,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
+import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.StorageType;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
@@ -50,6 +53,7 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hdfs.TestDFSClientRetries;
 import org.apache.hadoop.hdfs.TestFileCreation;
 import org.apache.hadoop.hdfs.client.HdfsClientConfigKeys;
+import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.apache.hadoop.hdfs.server.namenode.NameNode;
 import org.apache.hadoop.hdfs.server.namenode.snapshot.SnapshotTestHelper;
 import org.apache.hadoop.hdfs.server.namenode.web.resources.NamenodeWebHdfsMethods;
@@ -339,6 +343,60 @@ public class TestWebHDFS {
   }
 
   /**
+   * Test allow and disallow snapshot through WebHdfs. Verifying webhdfs with
+   * Distributed filesystem methods.
+   */
+  @Test
+  public void testWebHdfsAllowandDisallowSnapshots() throws Exception {
+    MiniDFSCluster cluster = null;
+    final Configuration conf = WebHdfsTestUtil.createConf();
+    try {
+      cluster = new MiniDFSCluster.Builder(conf).numDataNodes(0).build();
+      cluster.waitActive();
+      final DistributedFileSystem dfs = cluster.getFileSystem();
+      final WebHdfsFileSystem webHdfs = WebHdfsTestUtil
+          .getWebHdfsFileSystem(conf, WebHdfsConstants.WEBHDFS_SCHEME);
+
+      final Path bar = new Path("/bar");
+      dfs.mkdirs(bar);
+
+      // allow snapshots on /bar using webhdfs
+      webHdfs.allowSnapshot(bar);
+      webHdfs.createSnapshot(bar, "s1");
+      final Path s1path = SnapshotTestHelper.getSnapshotRoot(bar, "s1");
+      Assert.assertTrue(webHdfs.exists(s1path));
+      SnapshottableDirectoryStatus[] snapshottableDirs =
+          dfs.getSnapshottableDirListing();
+      assertEquals(1, snapshottableDirs.length);
+      assertEquals(bar, snapshottableDirs[0].getFullPath());
+      dfs.deleteSnapshot(bar, "s1");
+      dfs.disallowSnapshot(bar);
+      snapshottableDirs = dfs.getSnapshottableDirListing();
+      assertNull(snapshottableDirs);
+
+      // disallow snapshots on /bar using webhdfs
+      dfs.allowSnapshot(bar);
+      snapshottableDirs = dfs.getSnapshottableDirListing();
+      assertEquals(1, snapshottableDirs.length);
+      assertEquals(bar, snapshottableDirs[0].getFullPath());
+      webHdfs.disallowSnapshot(bar);
+      snapshottableDirs = dfs.getSnapshottableDirListing();
+      assertNull(snapshottableDirs);
+      try {
+        webHdfs.createSnapshot(bar);
+        fail("Cannot create snapshot on a non-snapshottable directory");
+      } catch (Exception e) {
+        GenericTestUtils.assertExceptionContains(
+            "Directory is not a snapshottable directory", e);
+      }
+    } finally {
+      if (cluster != null) {
+        cluster.shutdown();
+      }
+    }
+  }
+
+  /**
    * Test snapshot creation through WebHdfs
    */
   @Test
@@ -579,6 +637,28 @@ public class TestWebHDFS {
       System.arraycopy(CONTENTS, OFFSET, subContents, 0, LENGTH);
       IOUtils.readFully(conn.getInputStream(), realContents);
       Assert.assertArrayEquals(subContents, realContents);
+    } finally {
+      if (cluster != null) {
+        cluster.shutdown();
+      }
+    }
+  }
+
+  @Test
+  public void testContentSummary() throws Exception {
+    MiniDFSCluster cluster = null;
+    final Configuration conf = WebHdfsTestUtil.createConf();
+    final Path path = new Path("/QuotaDir");
+    try {
+      cluster = new MiniDFSCluster.Builder(conf).numDataNodes(0).build();
+      final WebHdfsFileSystem webHdfs = WebHdfsTestUtil.getWebHdfsFileSystem(
+          conf, WebHdfsConstants.WEBHDFS_SCHEME);
+      final DistributedFileSystem dfs = cluster.getFileSystem();
+      dfs.mkdirs(path);
+      dfs.setQuotaByStorageType(path, StorageType.DISK, 100000);
+      ContentSummary contentSummary = webHdfs.getContentSummary(path);
+      Assert.assertTrue((contentSummary.getTypeQuota(
+          StorageType.DISK) == 100000));
     } finally {
       if (cluster != null) {
         cluster.shutdown();

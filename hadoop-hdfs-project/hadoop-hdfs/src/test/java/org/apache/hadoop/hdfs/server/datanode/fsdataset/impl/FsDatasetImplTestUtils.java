@@ -19,10 +19,12 @@
 package org.apache.hadoop.hdfs.server.datanode.fsdataset.impl;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.FileExistsException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.fs.DF;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
 import org.apache.hadoop.hdfs.server.datanode.DataNode;
@@ -55,6 +57,11 @@ public class FsDatasetImplTestUtils implements FsDatasetTestUtils {
   private static final Log LOG =
       LogFactory.getLog(FsDatasetImplTestUtils.class);
   private final FsDatasetImpl dataset;
+
+  /**
+   * By default we assume 2 data directories (volumes) per DataNode.
+   */
+  public static final int DEFAULT_NUM_OF_DATA_DIRS = 2;
 
   /**
    * A reference to the replica that is used to corrupt block / meta later.
@@ -291,5 +298,49 @@ public class FsDatasetImplTestUtils implements FsDatasetTestUtils {
     Preconditions.checkArgument(replica instanceof ReplicaInfo);
     ReplicaInfo r = (ReplicaInfo) replica;
     FsDatasetImpl.checkReplicaFiles(r);
+  }
+
+  @Override
+  public void injectCorruptReplica(ExtendedBlock block) throws IOException {
+    Preconditions.checkState(!dataset.contains(block),
+        "Block " + block + " already exists on dataset.");
+    try (FsVolumeReferences volRef = dataset.getFsVolumeReferences()) {
+      FsVolumeImpl volume = (FsVolumeImpl) volRef.get(0);
+      FinalizedReplica finalized = new FinalizedReplica(
+          block.getLocalBlock(),
+          volume,
+          volume.getFinalizedDir(block.getBlockPoolId()));
+      File blockFile = finalized.getBlockFile();
+      if (!blockFile.createNewFile()) {
+        throw new FileExistsException(
+            "Block file " + blockFile + " already exists.");
+      }
+      File metaFile = FsDatasetUtil.getMetaFile(blockFile, 1000);
+      if (!metaFile.createNewFile()) {
+        throw new FileExistsException(
+            "Meta file " + metaFile + " already exists."
+        );
+      }
+    }
+  }
+
+  @Override
+  public Replica fetchReplica(ExtendedBlock block) {
+    return dataset.fetchReplicaInfo(block.getBlockPoolId(), block.getBlockId());
+  }
+
+  @Override
+  public int getDefaultNumOfDataDirs() {
+    return this.DEFAULT_NUM_OF_DATA_DIRS;
+  }
+
+  @Override
+  public long getRawCapacity() throws IOException {
+    try (FsVolumeReferences volRefs = dataset.getFsVolumeReferences()) {
+      Preconditions.checkState(volRefs.size() != 0);
+      DF df = new DF(new File(volRefs.get(0).getBasePath()),
+          dataset.datanode.getConf());
+      return df.getCapacity();
+    }
   }
 }

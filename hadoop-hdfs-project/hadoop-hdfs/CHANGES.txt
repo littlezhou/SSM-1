@@ -50,6 +50,9 @@ Trunk (Unreleased)
 
     HDFS-6440. Support more than 2 NameNodes. (Jesse Yates via atm)
 
+    HDFS-9057. allow/disallow snapshots via webhdfs
+    (Bramma Reddy Battula via vinayakumarb)
+
   IMPROVEMENTS
 
     HDFS-4665. Move TestNetworkTopologyWithNodeGroup to common.
@@ -183,6 +186,20 @@ Trunk (Unreleased)
 
     HDFS-9070. Allow fsck display pending replica location information for
     being-written blocks. (GAO Rui via jing9)
+
+    HDFS-9261. Erasure Coding: Skip encoding the data cells if all the parity data 
+    streamers are failed for the current block group. (Rakesh R via umamahesh)
+
+    HDFS-9323. Randomize the DFSStripedOutputStreamWithFailure tests. (szetszwo)
+
+    HDFS-8777. Erasure Coding: add tests for taking snapshots on EC files. 
+    (Rakesh R via zhz)
+
+    HADOOP-11684. S3a to use thread pool that blocks clients.
+    (Thomas Demoor and Aaron Fabbri via lei)
+
+    HDFS-9234. WebHdfs: getContentSummary() should give quota for storage types.
+    (Surendra Singh Lilhore via xyao)
 
   OPTIMIZATIONS
 
@@ -840,6 +857,9 @@ Trunk (Unreleased)
 
       HDFS-8438. Erasure Coding: Allow concat striped files if they have the same
       ErasureCodingPolicy. (Walter Su via jing9)
+
+      HDFS-9275. Wait previous ErasureCodingWork to finish before schedule
+      another one. (Walter Su via yliu)
 
 Release 2.8.0 - UNRELEASED
 
@@ -1524,9 +1544,6 @@ Release 2.8.0 - UNRELEASED
     HDFS-9110. Use Files.walkFileTree in NNUpgradeUtil#doPreUpgrade for
     better efficiency. (Charlie Helin via wang)
 
-    HDFS-9221. HdfsServerConstants#ReplicaState#getState should avoid calling
-    values() since it creates a temporary array. (Staffan Friberg via yliu)
-
     HDFS-8988. Use LightWeightHashSet instead of LightWeightLinkedSet in
     BlockManager#excessReplicateMap. (yliu)
 
@@ -1602,6 +1619,38 @@ Release 2.8.0 - UNRELEASED
     HDFS-9295. Add a thorough test of the full KMS code path. 
     (Daniel Templeton via zhz)
 
+    HDFS-8545. Refactor FS#getUsed() to use ContentSummary and add an API to fetch
+    the total file length from a specific path (J.Andreina via vinayakumarb)
+
+    HDFS-9229. Expose size of NameNode directory as a metric.
+    (Surendra Singh Lilhore via zhz)
+
+    HDFS-9339. Extend full test of KMS ACLs. (Daniel Templeton via zhz)
+
+    HDFS-9007. Fix HDFS Balancer to honor upgrade domain policy. (Ming Ma via lei)
+
+    HDFS-9331. Modify TestNameNodeMXBean#testNameNodeMXBeanInfo() to account for
+    filesystem entirely allocated for DFS use. (Tony Wu via lei)
+
+    HDFS-9363. Add fetchReplica() to FsDatasetTestUtils to return FsDataset-agnostic
+    replica. (Tony Wu via lei)
+
+    HDFS-9377. Fix findbugs warnings in FSDirSnapshotOp.
+    (Mingliang Liu via Yongjun Zhang)
+
+    HDFS-9236. Missing sanity check for block size during block recovery.
+    (Tony Wu via Yongjun Zhang)
+
+    HDFS-9379. Make NNThroughputBenchmark$BlockReportStats support more than 10
+    datanodes. (Mingliang Liu via Arpit Agarwal)
+
+    HDFS-9398. Make ByteArraryManager log message in one-line format.
+    (Mingliang Liu via szetszwo)
+
+    HDFS-2261. AOP unit tests are not getting compiled or run. (wheat9)
+
+    HDFS-9369. Use ctest to run tests for hadoop-hdfs-native-client. (wheat9)
+
   OPTIMIZATIONS
 
     HDFS-8026. Trace FSOutputSummer#writeChecksumChunks rather than
@@ -1642,6 +1691,18 @@ Release 2.8.0 - UNRELEASED
     (Tony Wu via lei)
 
     HDFS-9168. Move client side unit test to hadoop-hdfs-client. (wheat9)
+
+    HDFS-9312. Fix TestReplication to be FsDataset-agnostic. (lei)
+
+    HDFS-9308. Add truncateMeta() and deleteMeta() to MiniDFSCluster. (Tony Wu via lei)
+
+    HDFS-9372. Remove dead code in DataStorage.recoverTransitionRead.
+    (Duo Zhang via wheat9)
+
+    HDFS-9282. Make data directory count and storage raw capacity related tests
+    FsDataset-agnostic. (Tony Wu via lei)
+
+    HDFS-9318. considerLoad factor can be improved. (Kuhu Shukla via kihwal)
 
   BUG FIXES
 
@@ -2132,9 +2193,6 @@ Release 2.8.0 - UNRELEASED
     HDFS-9160. [OIV-Doc] : Missing details of 'delimited' for processor options
     (nijel via vinayakumarb)
 
-    HDFS-8855. Webhdfs client leaks active NameNode connections.
-    (Xiaobing Zhou via jitendra) 
-
     HDFS-9235. hdfs-native-client build getting errors when built with cmake
     2.6. (Eric Payne via wheat9)
 
@@ -2184,6 +2242,81 @@ Release 2.8.0 - UNRELEASED
     HDFS-9297. Decomissioned capacity should not be considered for 
     configured/used capacity (Contributed by Kuhu Shukla)
 
+    HDFS-9044. Give Priority to FavouredNodes , before selecting
+    nodes from FavouredNode's Node Group (J.Andreina via vinayakumarb)
+
+    HDFS-9332. Fix Precondition failures from NameNodeEditLogRoller while
+    saving namespace. (wang)
+
+    HDFS-9343. Empty caller context considered invalid. (Mingliang Liu via
+    Arpit Agarwal)
+
+    HDFS-9329. TestBootstrapStandby#testRateThrottling is flaky because fsimage
+    size is smaller than IO buffer size. (zhz)
+
+    HDFS-9313. Possible NullPointerException in BlockManager if no excess
+    replica can be chosen. (mingma)
+
+    HDFS-9354. Fix TestBalancer#testBalancerWithZeroThreadsForMove on Windows.
+    (Xiaoyu Yao via cnauroth)
+
+    HDFS-9362. TestAuditLogger#testAuditLoggerWithCallContext assumes Unix line
+    endings, fails on Windows. (cnauroth)
+
+    HDFS-9351. checkNNStartup() need to be called when fsck calls
+    FSNamesystem.getSnapshottableDirs(). (Xiao Chen via Yongjun Zhang)
+
+    HDFS-9357. NN UI renders icons of decommissioned DN incorrectly.
+    (Surendra Singh Lilhore via wheat9)
+
+    HDFS-9360. Storage type usage isn't updated properly after file deletion.
+    (Ming Ma via xyao)
+
+    HDFS-9378. hadoop-hdfs-client tests do not write logs. (cnauroth)
+
+    HDFS-9384. TestWebHdfsContentLength intermittently hangs and fails due to
+    TCP conversation mismatch between client and server. (cnauroth)
+
+    HDFS-9394. branch-2 hadoop-hdfs-client fails during FileSystem ServiceLoader
+    initialization, because HftpFileSystem is missing.
+    (Mingliang Liu via cnauroth)
+
+    HDFS-9249. NPE is thrown if an IOException is thrown in NameNode constructor.
+    (Wei-Chiu Chuang via Yongjun Zhang)
+
+    HDFS-9401. Fix findbugs warnings in BlockRecoveryWorker.
+    (Brahma Reddy Battula via waltersu4549)
+
+    HDFS-9364. Unnecessary DNS resolution attempts when creating NameNodeProxies.
+    (Xiao Chen via zhz)
+
+    HDFS-9245. Fix findbugs warnings in hdfs-nfs/WriteCtx.
+    (Mingliang Liu via xyao)
+
+    HDFS-9396. Total files and directories on jmx and web UI on standby is
+    uninitialized. (kihwal)
+
+Release 2.7.3 - UNRELEASED
+
+  INCOMPATIBLE CHANGES
+
+  NEW FEATURES
+
+  IMPROVEMENTS
+
+  OPTIMIZATIONS
+
+  BUG FIXES
+
+    HDFS-9289. Make DataStreamer#block thread safe and verify genStamp in
+    commitBlock. (Chang Li via zhz)
+
+    HDFS-4937. ReplicationMonitor can infinite-loop in 
+    BlockPlacementPolicyDefault#chooseRandom(). (kihwal)
+
+    HDFS-9383. TestByteArrayManager#testByteArrayManager fails.
+    (szetszwo via kihwal)
+
 Release 2.7.2 - UNRELEASED
 
   INCOMPATIBLE CHANGES
@@ -2199,6 +2332,9 @@ Release 2.7.2 - UNRELEASED
 
     HDFS-8099. Change "DFSInputStream has been closed already" message to
     debug log level (Charles Lamb via Colin P. McCabe)
+
+    HDFS-9221. HdfsServerConstants#ReplicaState#getState should avoid calling
+    values() since it creates a temporary array. (Staffan Friberg via yliu)
 
   OPTIMIZATIONS
 
@@ -2255,6 +2391,9 @@ Release 2.7.2 - UNRELEASED
 
     HDFS-9317. Document fsck -blockId and -storagepolicy options in branch-2.7.
     (aajisaka)
+
+    HDFS-6481. DatanodeManager#getDatanodeStorageInfos() should check the
+    length of storageIDs. (szetszwo via Arpit Agarwal)
 
 Release 2.7.1 - 2015-07-06
 
@@ -3278,7 +3417,19 @@ Release 2.7.0 - 2015-04-20
       HDFS-7700. Document quota support for storage types. (Xiaoyu Yao via
       Arpit Agarwal)
 
-Release 2.6.2 - UNRELEASED
+Release 2.6.3 - UNRELEASED
+
+  INCOMPATIBLE CHANGES
+
+  NEW FEATURES
+
+  IMPROVEMENTS
+
+  OPTIMIZATIONS
+
+  BUG FIXES
+
+Release 2.6.2 - 2015-10-28
 
   INCOMPATIBLE CHANGES
 
