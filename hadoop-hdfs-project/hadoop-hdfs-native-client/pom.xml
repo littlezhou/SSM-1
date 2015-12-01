@@ -33,6 +33,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <properties>
     <require.fuse>false</require.fuse>
     <require.libwebhdfs>false</require.libwebhdfs>
+    <native_ctest_args></native_ctest_args>
   </properties>
 
   <dependencies>
@@ -166,6 +167,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                       <property name="compile_classpath" refid="maven.compile.classpath"/>
                       <property name="test_classpath" refid="maven.test.classpath"/>
                       <exec executable="ctest" failonerror="true" dir="${project.build.directory}/">
+                        <arg line="${native_ctest_args}"/>
                         <env key="CLASSPATH" value="${test_classpath}:${compile_classpath}"/>
                         <!-- Make sure libhadoop.so is on LD_LIBRARY_PATH. -->
                         <env key="LD_LIBRARY_PATH" value="${env.LD_LIBRARY_PATH}:${project.build.directory}/target/usr/local/lib:${hadoop.common.build.dir}/native/target/usr/local/lib"/>
@@ -218,6 +220,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                     <property name="compile_classpath" refid="maven.compile.classpath"/>
                     <property name="test_classpath" refid="maven.test.classpath"/>
                     <exec executable="ctest" failonerror="true" dir="${project.build.directory}/">
+                      <arg line="${native_ctest_args}"/>
                       <env key="CLASSPATH" value="${test_classpath}:${compile_classpath}"/>
                       <!-- Make sure libhadoop.so is on LD_LIBRARY_PATH. -->
                       <env key="LD_LIBRARY_PATH" value="${env.LD_LIBRARY_PATH}:${project.build.directory}/target/usr/local/lib:${hadoop.common.build.dir}/native/target/usr/local/lib"/>
