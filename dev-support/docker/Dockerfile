@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     fuse libfuse-dev \
     libcurl4-openssl-dev \
     python python2.7 pylint \
-    openjdk-7-jdk doxygen
+    openjdk-7-jdk doxygen valgrind
 
 # Fixing the Apache commons / Maven dependency problem under Ubuntu:
 # See http://wiki.apache.org/commons/VfsProblems
