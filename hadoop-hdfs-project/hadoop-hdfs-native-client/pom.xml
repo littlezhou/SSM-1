@@ -177,6 +177,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                         <env key="CLASSPATH" value="${test_classpath}:${compile_classpath}"/>
                         <!-- Make sure libhadoop.so is on LD_LIBRARY_PATH. -->
                         <env key="LD_LIBRARY_PATH" value="${env.LD_LIBRARY_PATH}:${project.build.directory}/target/usr/local/lib:${hadoop.common.build.dir}/native/target/usr/local/lib"/>
+                        <arg line="${native_ctest_args}"/>
                       </exec>
                     </target>
                   </target>
@@ -232,6 +233,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                       <env key="CLASSPATH" value="${test_classpath}:${compile_classpath}"/>
                       <!-- Make sure libhadoop.so is on LD_LIBRARY_PATH. -->
                       <env key="LD_LIBRARY_PATH" value="${env.LD_LIBRARY_PATH}:${project.build.directory}/target/usr/local/lib:${hadoop.common.build.dir}/native/target/usr/local/lib"/>
+                      <arg line="${native_ctest_args}"/>
                     </exec>
                   </target>
                 </configuration>
