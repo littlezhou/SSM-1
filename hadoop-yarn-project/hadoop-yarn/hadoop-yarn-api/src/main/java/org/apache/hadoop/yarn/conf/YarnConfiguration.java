@@ -1313,7 +1313,17 @@ public class YarnConfiguration extends Configuration {
   public static final boolean DEFAULT_NM_LINUX_CONTAINER_CGROUPS_STRICT_RESOURCE_USAGE =
       false;
 
-
+  /** Overallocation (= allocation based on utilization) configs. */
+  public static final String NM_OVERALLOCATION_ALLOCATION_THRESHOLD =
+      NM_PREFIX + "overallocation.allocation-threshold";
+  public static final float DEFAULT_NM_OVERALLOCATION_ALLOCATION_THRESHOLD
+      = 0f;
+  @Private
+  public static final float MAX_NM_OVERALLOCATION_ALLOCATION_THRESHOLD = 0.95f;
+  public static final String NM_OVERALLOCATION_PREEMPTION_THRESHOLD =
+      NM_PREFIX + "overallocation.preemption-threshold";
+  public static final float DEFAULT_NM_OVERALLOCATION_PREEMPTION_THRESHOLD
+      = 0f;
 
   /**
    * Interval of time the linux container executor should try cleaning up

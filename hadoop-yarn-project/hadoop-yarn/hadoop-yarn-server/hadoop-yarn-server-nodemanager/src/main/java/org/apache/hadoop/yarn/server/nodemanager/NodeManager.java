@@ -59,6 +59,7 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.server.api.protocolrecords.LogAggregationReport;
 import org.apache.hadoop.yarn.server.api.records.NodeHealthStatus;
+import org.apache.hadoop.yarn.server.api.records.OverAllocationInfo;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.ContainerManagerImpl;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.application.Application;
 import org.apache.hadoop.yarn.server.nodemanager.containermanager.container.Container;
@@ -460,6 +461,7 @@ public class NodeManager extends CompositeService
     private final ConcurrentLinkedQueue<LogAggregationReport>
         logAggregationReportForApps;
     private NodeStatusUpdater nodeStatusUpdater;
+    private OverAllocationInfo overAllocationInfo;
 
     public NMContext(NMContainerTokenSecretManager containerTokenSecretManager,
         NMTokenSecretManagerInNM nmTokenSecretManager,
@@ -594,6 +596,20 @@ public class NodeManager extends CompositeService
 
     public void setNodeStatusUpdater(NodeStatusUpdater nodeStatusUpdater) {
       this.nodeStatusUpdater = nodeStatusUpdater;
+    }
+
+    @Override
+    public boolean isOverAllocationEnabled() {
+      return getOverAllocationInfo() != null;
+    }
+
+    @Override
+    public OverAllocationInfo getOverAllocationInfo() {
+      return this.overAllocationInfo;
+    }
+
+    public void setOverAllocationInfo(OverAllocationInfo overAllocationInfo) {
+      this.overAllocationInfo = overAllocationInfo;
     }
   }
 

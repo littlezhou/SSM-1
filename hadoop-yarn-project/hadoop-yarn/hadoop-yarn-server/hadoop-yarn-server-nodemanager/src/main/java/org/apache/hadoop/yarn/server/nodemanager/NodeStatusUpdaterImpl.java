@@ -335,7 +335,7 @@ public class NodeStatusUpdaterImpl extends AbstractService implements
       RegisterNodeManagerRequest request =
           RegisterNodeManagerRequest.newInstance(nodeId, httpPort, totalResource,
               nodeManagerVersionId, containerReports, getRunningApplications(),
-              nodeLabels);
+              nodeLabels, context.getOverAllocationInfo());
       if (containerReports != null) {
         LOG.info("Registering with RM using containers :" + containerReports);
       }
@@ -446,8 +446,8 @@ public class NodeStatusUpdaterImpl extends AbstractService implements
         = getIncreasedContainers();
     NodeStatus nodeStatus =
         NodeStatus.newInstance(nodeId, responseId, containersStatuses,
-          createKeepAliveApplicationList(), nodeHealthStatus,
-          containersUtilization, nodeUtilization, increasedContainers);
+            createKeepAliveApplicationList(), nodeHealthStatus,
+            containersUtilization, nodeUtilization, increasedContainers);
 
     return nodeStatus;
   }
