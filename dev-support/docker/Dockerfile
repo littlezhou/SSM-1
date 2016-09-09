@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     fuse libfuse-dev \
     libcurl4-openssl-dev \
     python python2.7 pylint \
-    openjdk-7-jdk doxygen valgrind
+    openjdk-7-jdk doxygen valgrind libsasl2-dev
 
 # Fixing the Apache commons / Maven dependency problem under Ubuntu:
 # See http://wiki.apache.org/commons/VfsProblems
@@ -106,4 +106,3 @@ RUN mkdir -p /usr/local/apache-forrest ; \
 ADD hadoop_env_checks.sh /root/hadoop_env_checks.sh
 RUN chmod 755 /root/hadoop_env_checks.sh
 RUN echo '~/hadoop_env_checks.sh' >> /root/.bashrc
-
