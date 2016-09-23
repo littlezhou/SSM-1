@@ -45,6 +45,7 @@ import org.apache.hadoop.hdfs.server.protocol.*;
 import org.apache.hadoop.hdfs.server.protocol.BlockECReconstructionCommand.BlockECReconstructionInfo;
 import org.apache.hadoop.hdfs.server.protocol.BlockRecoveryCommand.RecoveringBlock;
 import org.apache.hadoop.hdfs.server.protocol.BlockRecoveryCommand.RecoveringStripedBlock;
+import org.apache.hadoop.hdfs.server.protocol.BlockStorageMovementCommand.BlockMovingInfo;
 import org.apache.hadoop.ipc.Server;
 import org.apache.hadoop.net.*;
 import org.apache.hadoop.net.NetworkTopology.InvalidTopologyException;
@@ -1630,6 +1631,12 @@ public class DatanodeManager {
       cmds.add(new BalancerBandwidthCommand(nodeinfo.getBalancerBandwidth()));
       // set back to 0 to indicate that datanode has been sent the new value
       nodeinfo.setBalancerBandwidth(0);
+    }
+
+    List<BlockMovingInfo> blocksToMoveStorages = nodeinfo
+        .getBlocksToMoveStorages();
+    if (blocksToMoveStorages != null) {
+      // TODO: create BlockStorageMovementCommand and add here in response.
     }
 
     if (!cmds.isEmpty()) {
