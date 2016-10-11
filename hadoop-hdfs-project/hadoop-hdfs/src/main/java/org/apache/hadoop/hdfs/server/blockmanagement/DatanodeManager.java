@@ -1633,10 +1633,17 @@ public class DatanodeManager {
       nodeinfo.setBalancerBandwidth(0);
     }
 
-    List<BlockMovingInfo> blocksToMoveStorages = nodeinfo
+    // check pending block storage movement tasks
+    List<BlockMovingInfo> pendingBlockMovementList = nodeinfo
         .getBlocksToMoveStorages();
-    if (blocksToMoveStorages != null) {
-      // TODO: create BlockStorageMovementCommand and add here in response.
+    if (pendingBlockMovementList != null) {
+      // TODO: trackID is used to track the block movement sends to coordinator
+      // datanode. Need to implement tracking logic. Temporarily, using a
+      // constant value -1.
+      long trackID = -1;
+      cmds.add(new BlockStorageMovementCommand(
+          DatanodeProtocol.DNA_BLOCK_STORAGE_MOVEMENT, trackID, blockPoolId,
+          pendingBlockMovementList));
     }
 
     if (!cmds.isEmpty()) {
