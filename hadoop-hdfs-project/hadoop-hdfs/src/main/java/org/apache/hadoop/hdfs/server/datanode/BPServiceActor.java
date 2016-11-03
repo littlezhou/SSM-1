@@ -51,6 +51,7 @@ import org.apache.hadoop.hdfs.protocolPB.DatanodeProtocolClientSideTranslatorPB;
 import org.apache.hadoop.hdfs.server.common.IncorrectVersionException;
 import org.apache.hadoop.hdfs.server.namenode.FSNamesystem;
 import org.apache.hadoop.hdfs.server.protocol.BlockReportContext;
+import org.apache.hadoop.hdfs.server.protocol.BlocksStorageMovementResult;
 import org.apache.hadoop.hdfs.server.protocol.DatanodeCommand;
 import org.apache.hadoop.hdfs.server.protocol.DatanodeRegistration;
 import org.apache.hadoop.hdfs.server.protocol.DatanodeStorage;
@@ -494,15 +495,33 @@ class BPServiceActor implements Runnable {
         .getVolumeFailureSummary();
     int numFailedVolumes = volumeFailureSummary != null ?
         volumeFailureSummary.getFailedStorageLocations().length : 0;
-    return bpNamenode.sendHeartbeat(bpRegistration,
-        reports,
-        dn.getFSDataset().getCacheCapacity(),
-        dn.getFSDataset().getCacheUsed(),
-        dn.getXmitsInProgress(),
-        dn.getXceiverCount(),
-        numFailedVolumes,
-        volumeFailureSummary,
-        requestBlockReportLease);
+
+    BlocksStorageMovementResult[] blksMovementResults =
+        getBlocksMovementResults();
+
+    HeartbeatResponse response = bpNamenode.sendHeartbeat(bpRegistration,
+        reports, dn.getFSDataset().getCacheCapacity(),
+        dn.getFSDataset().getCacheUsed(), dn.getXmitsInProgress(),
+        dn.getXceiverCount(), numFailedVolumes, volumeFailureSummary,
+        requestBlockReportLease, blksMovementResults);
+
+    // Remove the blocks movement results after successfully transferring
+    // to namenode.
+    dn.getStoragePolicySatisfyWorker().getBlocksMovementsCompletionHandler()
+        .remove(blksMovementResults);
+
+    return response;
+  }
+
+  private BlocksStorageMovementResult[] getBlocksMovementResults() {
+    List<BlocksStorageMovementResult> trackIdVsMovementStatus = dn
+        .getStoragePolicySatisfyWorker().getBlocksMovementsCompletionHandler()
+        .getBlksMovementResults();
+    BlocksStorageMovementResult[] blksMovementResult =
+        new BlocksStorageMovementResult[trackIdVsMovementStatus.size()];
+    trackIdVsMovementStatus.toArray(blksMovementResult);
+
+    return blksMovementResult;
   }
 
   @VisibleForTesting

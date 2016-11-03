@@ -120,7 +120,9 @@ public class DatanodeProtocolServerSideTranslatorPB implements
           report, request.getCacheCapacity(), request.getCacheUsed(),
           request.getXmitsInProgress(),
           request.getXceiverCount(), request.getFailedVolumes(),
-          volumeFailureSummary, request.getRequestFullBlockReportLease());
+          volumeFailureSummary, request.getRequestFullBlockReportLease(),
+          PBHelper.convertBlksMovResults(
+              request.getBlksMovementResultsList()));
     } catch (IOException e) {
       throw new ServiceException(e);
     }

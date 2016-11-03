@@ -177,6 +177,18 @@ message BlockStorageMovementProto {
 }
 
 /**
+ * Movement status of the set of blocks associated to a trackId.
+ */
+message BlocksStorageMovementResultProto {
+  enum Status {
+    SUCCESS = 1; // block movement succeeded
+    FAILURE = 2; // block movement failed and needs to retry
+  }
+  required uint64 trackID = 1;
+  required Status status = 2;
+}
+
+/**
  * registration - Information of the datanode registering with the namenode
  */
 message RegisterDatanodeRequestProto {
@@ -217,6 +229,7 @@ message VolumeFailureSummaryProto {
  * cacheCapacity - total cache capacity available at the datanode
  * cacheUsed - amount of cache used
  * volumeFailureSummary - info about volume failures
+ * blksMovementResults - status of the scheduled blocks movements
  */
 message HeartbeatRequestProto {
   required DatanodeRegistrationProto registration = 1; // Datanode info
@@ -228,6 +241,7 @@ message HeartbeatRequestProto {
   optional uint64 cacheUsed = 7 [default = 0 ];
   optional VolumeFailureSummaryProto volumeFailureSummary = 8;
   optional bool requestFullBlockReportLease = 9 [ default = false ];
+  repeated BlocksStorageMovementResultProto blksMovementResults = 10;
 }
 
 /**

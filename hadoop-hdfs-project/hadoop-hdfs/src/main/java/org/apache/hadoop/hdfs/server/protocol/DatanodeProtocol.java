@@ -106,6 +106,8 @@ public interface DatanodeProtocol {
    * @param volumeFailureSummary info about volume failures
    * @param requestFullBlockReportLease whether to request a full block
    *                                    report lease.
+   * @param blksMovementResults array of movement status of a set of blocks
+   *                            associated to a trackId.
    * @throws IOException on error
    */
   @Idempotent
@@ -117,7 +119,8 @@ public interface DatanodeProtocol {
                                        int xceiverCount,
                                        int failedVolumes,
                                        VolumeFailureSummary volumeFailureSummary,
-                                       boolean requestFullBlockReportLease)
+                                       boolean requestFullBlockReportLease,
+                                       BlocksStorageMovementResult[] blksMovementResults)
       throws IOException;
 
   /**
