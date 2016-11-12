@@ -24,6 +24,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -664,7 +665,7 @@ public class TestRMContainerAllocator {
     final String[] locations = new String[] { host };
     allocator.sendRequest(createReq(jobId, 0, 1024, locations, false, true));
     allocator.scheduleAllReduces();
-    allocator.makeRemoteRequest();
+    allocator.containerRequestor.makeRemoteRequest();
     nm.nodeHeartbeat(true);
     dispatcher.await();
     allocator.sendRequest(createReq(jobId, 1, 1024, locations, false, false));
@@ -2059,24 +2060,18 @@ public class TestRMContainerAllocator {
     public void updateSchedulerProxy(MyResourceManager rm) {
       scheduler = rm.getApplicationMasterService();
     }
-
-    @Override
-    protected AllocateResponse makeRemoteRequest() throws IOException,
-        YarnException {
-      allocateResponse = super.makeRemoteRequest();
-      return allocateResponse;
-    }
   }
 
   private static class MyContainerAllocator2 extends MyContainerAllocator {
     public MyContainerAllocator2(MyResourceManager rm, Configuration conf,
-      ApplicationAttemptId appAttemptId, Job job) {
+        ApplicationAttemptId appAttemptId, Job job)
+        throws YarnException, IOException {
       super(rm, conf, appAttemptId, job);
-    }
-    @Override
-    protected AllocateResponse makeRemoteRequest() throws IOException,
-      YarnException {
-      throw new IOException("for testing");
+      containerRequestor = mock(RMContainerRequestor.class);
+      doThrow(new IOException("for testing")).when(containerRequestor)
+          .makeRemoteRequest();
+      doReturn(Resource.newInstance(2048, 1)).when(containerRequestor)
+          .getAvailableResources();
     }
   }
 
@@ -2100,6 +2095,7 @@ public class TestRMContainerAllocator {
         any(Resource.class), anyInt(), anyFloat(), anyFloat());
     doReturn(EnumSet.of(SchedulerResourceTypes.MEMORY)).when(allocator)
       .getSchedulerResourceTypes();
+    allocator.containerRequestor = mock(RMContainerRequestor.class);
 
     // Test slow-start
     allocator.scheduleReduces(
@@ -2983,8 +2979,8 @@ public class TestRMContainerAllocator {
     Assert.assertEquals(1, allocator.getScheduledRequests().maps.size());
     Assert.assertEquals(0, allocator.getAssignedRequests().maps.size());
 
-    Assert.assertEquals(6, allocator.getAsk().size());
-    for (ResourceRequest req : allocator.getAsk()) {
+    Assert.assertEquals(6, allocator.containerRequestor.getAsk().size());
+    for (ResourceRequest req : allocator.containerRequestor.getAsk()) {
       boolean isReduce =
           req.getPriority().equals(RMContainerAllocator.PRIORITY_REDUCE);
       if (isReduce) {
@@ -3009,8 +3005,8 @@ public class TestRMContainerAllocator {
     // indicate ramping down of reduces to scheduler.
     Assert.assertEquals(0, allocator.getScheduledRequests().reduces.size());
     Assert.assertEquals(2, allocator.getNumOfPendingReduces());
-    Assert.assertEquals(3, allocator.getAsk().size());
-    for (ResourceRequest req : allocator.getAsk()) {
+    Assert.assertEquals(3, allocator.containerRequestor.getAsk().size());
+    for (ResourceRequest req : allocator.containerRequestor.getAsk()) {
       Assert.assertEquals(
           RMContainerAllocator.PRIORITY_REDUCE, req.getPriority());
       Assert.assertTrue(req.getResourceName().equals("*") ||
@@ -3037,6 +3033,7 @@ public class TestRMContainerAllocator {
     RMContainerAllocator containerAllocator =
         new RMContainerAllocatorForFinishedContainer(null, context,
             mock(AMPreemptionPolicy.class));
+    containerAllocator.init(new Configuration());
 
     ContainerStatus finishedContainer = ContainerStatus.newInstance(
         mock(ContainerId.class), ContainerState.COMPLETE, "", 0);
@@ -3149,8 +3146,8 @@ public class TestRMContainerAllocator {
     Assert.assertEquals(1, allocator.getScheduledRequests().maps.size());
     Assert.assertEquals(0, allocator.getAssignedRequests().maps.size());
 
-    Assert.assertEquals(6, allocator.getAsk().size());
-    for (ResourceRequest req : allocator.getAsk()) {
+    Assert.assertEquals(6, allocator.containerRequestor.getAsk().size());
+    for (ResourceRequest req : allocator.containerRequestor.getAsk()) {
       boolean isReduce =
           req.getPriority().equals(RMContainerAllocator.PRIORITY_REDUCE);
       if (isReduce) {
@@ -3178,8 +3175,8 @@ public class TestRMContainerAllocator {
     // indicate ramping down of reduces to scheduler.
     Assert.assertEquals(0, allocator.getScheduledRequests().reduces.size());
     Assert.assertEquals(2, allocator.getNumOfPendingReduces());
-    Assert.assertEquals(3, allocator.getAsk().size());
-    for (ResourceRequest req : allocator.getAsk()) {
+    Assert.assertEquals(3, allocator.containerRequestor.getAsk().size());
+    for (ResourceRequest req : allocator.containerRequestor.getAsk()) {
       Assert.assertEquals(
           RMContainerAllocator.PRIORITY_REDUCE, req.getPriority());
       Assert.assertTrue(req.getResourceName().equals("*") ||
