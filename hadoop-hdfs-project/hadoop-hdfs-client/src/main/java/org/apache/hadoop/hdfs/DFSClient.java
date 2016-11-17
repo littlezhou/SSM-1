@@ -2906,7 +2906,6 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
    * erasure coded, null otherwise
    * @throws IOException
    */
-
   public ErasureCodingPolicy getErasureCodingPolicy(String src)
       throws IOException {
     checkOpen();
@@ -2916,6 +2915,24 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
     } catch (RemoteException re) {
       throw re.unwrapRemoteException(FileNotFoundException.class,
           AccessControlException.class, UnresolvedPathException.class);
+    }
+  }
+
+  /**
+   * Satisfy storage policy for an existing file/directory.
+   * @param src file/directory name
+   * @throws IOException
+   */
+  public void satisfyStoragePolicy(String src) throws IOException {
+    checkOpen();
+    try (TraceScope ignored =
+        newPathTraceScope("satisfyStoragePolicy", src)) {
+      namenode.satisfyStoragePolicy(src);
+    } catch (RemoteException re) {
+      throw re.unwrapRemoteException(AccessControlException.class,
+          FileNotFoundException.class,
+          SafeModeException.class,
+          UnresolvedPathException.class);
     }
   }
 
