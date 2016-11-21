@@ -77,6 +77,7 @@ public abstract class NMStateStoreService extends AbstractService {
     private String workDir;
     private String logDir;
     int version;
+    private long startTime;
 
     public RecoveredContainerStatus getStatus() {
       return status;
@@ -96,6 +97,14 @@ public abstract class NMStateStoreService extends AbstractService {
 
     public int getVersion() {
       return version;
+    }
+
+    public long getStartTime() {
+      return startTime;
+    }
+
+    public void setStartTime(long ts) {
+      startTime = ts;
     }
 
     public StartContainerRequest getStartRequest() {
@@ -135,6 +144,7 @@ public abstract class NMStateStoreService extends AbstractService {
       return new StringBuffer("Status: ").append(getStatus())
           .append(", Exit code: ").append(exitCode)
           .append(", Version: ").append(version)
+          .append(", Start Time: ").append(startTime)
           .append(", Killed: ").append(getKilled())
           .append(", Diagnostics: ").append(getDiagnostics())
           .append(", Capability: ").append(getCapability())
@@ -312,11 +322,12 @@ public abstract class NMStateStoreService extends AbstractService {
    * Record a container start request
    * @param containerId the container ID
    * @param containerVersion the container Version
+   * @param startTime container start time
    * @param startRequest the container start request
    * @throws IOException
    */
   public abstract void storeContainer(ContainerId containerId,
-      int containerVersion, StartContainerRequest startRequest)
+      int containerVersion, long startTime, StartContainerRequest startRequest)
       throws IOException;
 
   /**

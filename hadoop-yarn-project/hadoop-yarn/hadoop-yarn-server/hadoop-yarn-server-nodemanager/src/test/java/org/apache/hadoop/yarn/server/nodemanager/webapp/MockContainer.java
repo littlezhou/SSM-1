@@ -213,4 +213,9 @@ public class MockContainer implements Container {
   public Priority getPriority() {
     return Priority.UNDEFINED;
   }
+
+  @Override
+  public long getContainerStartTime() {
+    return 0;
+  }
 }
