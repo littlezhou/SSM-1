@@ -62,6 +62,7 @@ import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.recovery.NMStateStoreService.RecoveredContainerState;
 import org.apache.hadoop.yarn.server.nodemanager.recovery.NMStateStoreService.RecoveredContainerStatus;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
+import org.apache.hadoop.yarn.util.SystemClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +139,8 @@ public class QueuingContainerManagerImpl extends ContainerManagerImpl {
     } else {
       ContainerId cIdToStart = containerTokenIdentifier.getContainerID();
       this.context.getNMStateStore().storeContainer(cIdToStart,
-          containerTokenIdentifier.getVersion(), request);
+          containerTokenIdentifier.getVersion(),
+          SystemClock.getInstance().getTime(), request);
       this.context.getNMStateStore().storeContainerQueued(cIdToStart);
       LOG.info("No available resources for container {} to start its execution "
           + "immediately.", cIdToStart);

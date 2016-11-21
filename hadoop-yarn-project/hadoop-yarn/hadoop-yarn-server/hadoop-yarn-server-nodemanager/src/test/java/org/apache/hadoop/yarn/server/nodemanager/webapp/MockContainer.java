@@ -215,4 +215,9 @@ public class MockContainer implements Container {
   public void commitUpgrade() {
 
   }
+
+  @Override
+  public long getContainerStartTime() {
+    return 0;
+  }
 }
