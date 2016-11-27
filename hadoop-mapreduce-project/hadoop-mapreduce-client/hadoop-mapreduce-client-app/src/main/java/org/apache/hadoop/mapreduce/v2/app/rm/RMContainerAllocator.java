@@ -80,6 +80,7 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.Token;
 import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.client.api.NMTokenCache;
+import org.apache.hadoop.yarn.event.Dispatcher;
 import org.apache.hadoop.yarn.exceptions.ApplicationAttemptNotFoundException;
 import org.apache.hadoop.yarn.exceptions.ApplicationMasterNotRegisteredException;
 import org.apache.hadoop.yarn.exceptions.InvalidLabelResourceRequestException;
@@ -198,10 +199,13 @@ public class RMContainerAllocator extends RMCommunicator
 
   private String reduceNodeLabelExpression;
 
+  private Dispatcher dispatcher;
+
   public RMContainerAllocator(ClientService clientService, AppContext context,
-      AMPreemptionPolicy preemptionPolicy) {
+      AMPreemptionPolicy preemptionPolicy, Dispatcher dispatcher) {
     super(clientService, context);
     this.preemptionPolicy = preemptionPolicy;
+    this.dispatcher = dispatcher;
     this.stopped = new AtomicBoolean(false);
     this.clock = context.getClock();
     this.assignedRequests = createAssignedRequests();
@@ -245,7 +249,14 @@ public class RMContainerAllocator extends RMCommunicator
     this.scheduledRequests.setNumOpportunisticMapsPer100(
         conf.getInt(MRJobConfig.MR_NUM_OPPORTUNISTIC_MAPS_PER_100,
             MRJobConfig.DEFAULT_MR_NUM_OPPORTUNISTIC_MAPS_PER_100));
-    containerRequestor = new RMContainerRequestor(this);
+    if (conf.getBoolean(MRJobConfig.MR_AM_CONTAINER_REUSE_ENABLED,
+        MRJobConfig.DEFAULT_MR_AM_CONTAINER_REUSE_ENABLED)) {
+      containerRequestor = new RMContainerReuseRequestor(eventHandler, this);
+      dispatcher.register(RMContainerReuseRequestor.EventType.class,
+          (RMContainerReuseRequestor) containerRequestor);
+    } else {
+      containerRequestor = new RMContainerRequestor(this);
+    }
     containerRequestor.init(conf);
   }
 

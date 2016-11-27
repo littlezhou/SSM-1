@@ -78,7 +78,7 @@ public class RMContainerRequestor extends AbstractService
   //Value->Map
   //Key->Resource Capability
   //Value->ResourceRequest
-  private final Map<Priority, Map<String, Map<Resource, ResourceRequest>>>
+  protected final Map<Priority, Map<String, Map<Resource, ResourceRequest>>>
   remoteRequestsTable =
       new TreeMap<Priority, Map<String, Map<Resource, ResourceRequest>>>();
 
