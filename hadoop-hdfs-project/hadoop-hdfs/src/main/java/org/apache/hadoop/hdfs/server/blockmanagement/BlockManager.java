@@ -408,7 +408,24 @@ public class BlockManager implements BlockStatsMXBean {
         DFSConfigKeys.DFS_NAMENODE_RECONSTRUCTION_PENDING_TIMEOUT_SEC_DEFAULT)
         * 1000L);
 
-    sps = new StoragePolicySatisfier(namesystem, storageMovementNeeded, this);
+    final boolean storagePolicyEnabled =
+        conf.getBoolean(DFSConfigKeys.DFS_STORAGE_POLICY_ENABLED_KEY,
+            DFSConfigKeys.DFS_STORAGE_POLICY_ENABLED_DEFAULT);
+    final boolean spsEnabled =
+        conf.getBoolean(
+            DFSConfigKeys.DFS_STORAGE_POLICY_SATISFIER_ACTIVATE_KEY,
+            DFSConfigKeys.DFS_STORAGE_POLICY_SATISFIER_ACTIVATE_DEFAULT);
+    if (storagePolicyEnabled && spsEnabled) {
+      sps = new StoragePolicySatisfier(namesystem,
+          storageMovementNeeded, this);
+    } else {
+      sps = null;
+      LOG.warn(
+          "Failed to start StoragePolicySatisfier"
+              + " since {} set to {} and {} set to {}.",
+          DFSConfigKeys.DFS_STORAGE_POLICY_ENABLED_KEY, storagePolicyEnabled,
+          DFSConfigKeys.DFS_STORAGE_POLICY_SATISFIER_ACTIVATE_KEY, spsEnabled);
+    }
     blockTokenSecretManager = createBlockTokenSecretManager(conf);
 
     this.maxCorruptFilesReturned = conf.getInt(
@@ -625,11 +642,15 @@ public class BlockManager implements BlockStatsMXBean {
     this.blockReportThread.start();
     mxBeanName = MBeans.register("NameNode", "BlockStats", this);
     bmSafeMode.activate(blockTotal);
-    sps.start();
+    if (sps != null) {
+      sps.start();
+    }
   }
 
   public void close() {
-	sps.stop();
+    if (sps != null) {
+      sps.stop();
+    }
     bmSafeMode.close();
     try {
       redundancyThread.interrupt();

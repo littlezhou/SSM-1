@@ -1560,4 +1560,12 @@ public interface ClientProtocol {
    */
   @Idempotent
   void satisfyStoragePolicy(String path) throws IOException;
+
+  /**
+   * Check if StoragePolicySatisfier is running.
+   * @return true if StoragePolicySatisfier is running
+   * @throws IOException
+   */
+  @Idempotent
+  boolean isStoragePolicySatisfierRunning() throws IOException;
 }
