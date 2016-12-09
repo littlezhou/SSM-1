@@ -26,4 +26,5 @@ public enum ContainerSchedulerEventType {
   CONTAINER_COMPLETED,
   // Producer: Node HB response - RM has asked to shed the queue
   SHED_QUEUED_CONTAINERS,
+  CONTAINER_PAUSED
 }
