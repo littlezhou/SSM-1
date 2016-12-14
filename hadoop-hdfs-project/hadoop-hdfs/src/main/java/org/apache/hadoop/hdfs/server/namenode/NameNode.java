@@ -156,6 +156,7 @@ import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_HEARTBEAT_INTERVAL_DEFAUL
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_KEY;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_DEFAULT;
 import static org.apache.hadoop.hdfs.DFSConfigKeys.FS_PROTECTED_DIRECTORIES;
+import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_STORAGE_POLICY_SATISFIER_ACTIVATE_KEY;
 import static org.apache.hadoop.util.ExitUtil.terminate;
 import static org.apache.hadoop.util.ToolRunner.confirmPrompt;
 import static org.apache.hadoop.fs.CommonConfigurationKeys.IPC_BACKOFF_ENABLE;
@@ -287,7 +288,8 @@ public class NameNode extends ReconfigurableBase implements
           DFS_HEARTBEAT_INTERVAL_KEY,
           DFS_NAMENODE_HEARTBEAT_RECHECK_INTERVAL_KEY,
           FS_PROTECTED_DIRECTORIES,
-          HADOOP_CALLER_CONTEXT_ENABLED_KEY));
+          HADOOP_CALLER_CONTEXT_ENABLED_KEY,
+          DFS_STORAGE_POLICY_SATISFIER_ACTIVATE_KEY));
 
   private static final String USAGE = "Usage: hdfs namenode ["
       + StartupOption.BACKUP.getName() + "] | \n\t["
@@ -2012,6 +2014,8 @@ public class NameNode extends ReconfigurableBase implements
       return reconfCallerContextEnabled(newVal);
     } else if (property.equals(ipcClientRPCBackoffEnable)) {
       return reconfigureIPCBackoffEnabled(newVal);
+    } else if (property.equals(DFS_STORAGE_POLICY_SATISFIER_ACTIVATE_KEY)) {
+      return reconfigureSPSActivate(newVal, property);
     } else {
       throw new ReconfigurationException(property, newVal, getConf().get(
           property));
@@ -2090,6 +2094,26 @@ public class NameNode extends ReconfigurableBase implements
     rpcServer.getClientRpcServer()
         .setClientBackoffEnabled(clientBackoffEnabled);
     return Boolean.toString(clientBackoffEnabled);
+  }
+
+  String reconfigureSPSActivate(String newVal, String property)
+      throws ReconfigurationException {
+    if (newVal == null || !(newVal.equalsIgnoreCase(Boolean.TRUE.toString())
+        || newVal.equalsIgnoreCase(Boolean.FALSE.toString()))) {
+      throw new ReconfigurationException(property, newVal,
+          getConf().get(property),
+          new HadoopIllegalArgumentException(
+              "For activating or deactivating storage policy satisfier, "
+                  + "we must pass true/false only"));
+    }
+
+    boolean activateSPS = Boolean.parseBoolean(newVal);
+    if (activateSPS) {
+      namesystem.getBlockManager().activateSPS();
+    } else {
+      namesystem.getBlockManager().deactivateSPS();
+    }
+    return newVal;
   }
 
   @Override  // ReconfigurableBase

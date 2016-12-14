@@ -2266,8 +2266,6 @@ public class NameNodeRpcServer implements NamenodeProtocols {
     if (nn.isStandbyState()) {
       throw new StandbyException("Not supported by Standby Namenode.");
     }
-    StoragePolicySatisfier sps = namesystem.getBlockManager()
-        .getStoragePolicySatisfier();
-    return sps != null && sps.isRunning();
+    return namesystem.getBlockManager().isStoragePolicySatisfierRunning();
   }
 }
