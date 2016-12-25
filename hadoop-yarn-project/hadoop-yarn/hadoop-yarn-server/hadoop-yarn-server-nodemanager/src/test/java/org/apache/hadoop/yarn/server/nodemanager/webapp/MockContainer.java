@@ -230,4 +230,9 @@ public class MockContainer implements Container {
   public void sendKillEvent(int exitStatus, String description) {
 
   }
+
+  @Override
+  public void sendPauseEvent(String description) {
+
+  }
 }
