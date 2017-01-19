@@ -17,40 +17,26 @@
  */
 package org.apache.hadoop.ssm;
 
-import org.apache.hadoop.hdfs.DFSClient;
+import java.util.Map;
 
 /**
- * Base for actions
+ * Manage and execute rules
  */
-public abstract class ActionBase {
-
-
-  private DFSClient dfsClient;
-
-  public ActionBase(ActionType2 actionType, DFSClient client) {
-    this.dfsClient = client;
-  }
-
+public class RuleManager {
+  Map<Long, RuleContainer2> rules;
 
   /**
-   * Used to initialize the action.
-   * @param args Action specific
+   * Start Rule manager.
    */
-  public abstract void initial(String[] args);
+  public void start() {
+  }
 
   /**
-   * Execute an action.
-   * @return true if success, otherwise return false.
+   *
    */
-  protected abstract boolean execute();
+  public void addRuleString() {
 
-  public abstract ActionType2 getActionType();
-
-  public final boolean run() {
-    return execute();
   }
 
-  public static ActionBase getInstance(ActionType actionType) {
-    return null;
-  }
+
 }
