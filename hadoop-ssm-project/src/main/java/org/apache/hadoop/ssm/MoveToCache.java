@@ -40,15 +40,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MoveToCache extends ActionBase {
   private static final Log LOG = LogFactory.getLog(MoveToCache.class);
   private static MoveToCache instance;
-  private DFSClient dfsClient;
   private String fileName;
   private Configuration conf;
   private LinkedBlockingQueue<String> actionEvents;
   private final String SSMPOOL = "SSMPool";
+  private long id;
 
-  public MoveToCache(DFSClient client) {
-    super(client);
-    this.dfsClient = client;
+  public MoveToCache(DFSClient dfsclient) {
+    super(dfsclient);
     this.actionEvents = new LinkedBlockingQueue<String>();
   }
 
@@ -90,7 +89,6 @@ public class MoveToCache extends ActionBase {
       if (isCached(fileName)) {
         return;
       }
-      LOG.info("*" + System.currentTimeMillis() + " : " + fileName + " -> " + "cache");
       addDirective(fileName);
     } else {
       LOG.info("*" + System.currentTimeMillis() + " : " + "createPool failed!");
@@ -104,7 +102,9 @@ public class MoveToCache extends ActionBase {
         return true;
       } else {
         dfsClient.addCachePool(new CachePoolInfo(SSMPOOL));
-        if (isSSMPoolExist(poolEntries)) return true;
+        poolEntries = dfsClient.listCachePools();
+        if (isSSMPoolExist(poolEntries))
+          return true;
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -138,7 +138,7 @@ public class MoveToCache extends ActionBase {
     try {
       RemoteIterator<CacheDirectiveEntry> directiveEntries = dfsClient.listCacheDirectives(filter);
       return directiveEntries.hasNext();
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -150,9 +150,14 @@ public class MoveToCache extends ActionBase {
     CacheDirectiveInfo filter = filterBuilder.build();
     EnumSet<CacheFlag> flags = EnumSet.noneOf(CacheFlag.class);
     try {
-      dfsClient.addCacheDirective(filter, flags);
-    } catch (Exception e) {
+      id = dfsClient.addCacheDirective(filter, flags);
+      LOG.info("*" + System.currentTimeMillis() + " : " + fileName + " -> " + "cache");
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public long getId() {
+    return id;
   }
 }

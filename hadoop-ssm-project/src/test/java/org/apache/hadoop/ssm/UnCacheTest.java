@@ -1,21 +1,3 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.apache.hadoop.ssm;
 
 import org.apache.hadoop.conf.Configuration;
@@ -27,17 +9,16 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
-
 /**
- * Created by cc on 17-1-12.
+ * Created by hadoop on 17-2-13.
  */
-public class MoveToCacheTest {
+public class UnCacheTest {
 
   private static final int DEFAULT_BLOCK_SIZE = 100;
   private static final String REPLICATION_KEY = "3";
 
   @Test
-  public void testMoveToCache() throws IOException {
+  public void testUnCache() throws IOException {
     Configuration conf = new Configuration();
     conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, DEFAULT_BLOCK_SIZE);
     conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, DEFAULT_BLOCK_SIZE);
@@ -46,11 +27,17 @@ public class MoveToCacheTest {
     final DFSClient client = cluster.getFileSystem().getClient();
     final DistributedFileSystem dfs = cluster.getFileSystem();
     String[] str = {"/testMoveToCache"};
+
     dfs.mkdirs(new Path(str[0]));
     MoveToCache moveToCache = MoveToCache.getInstance(client, conf);
     assertEquals(false, moveToCache.isCached(str[0]));
     moveToCache.initial(str);
     moveToCache.execute();
     assertEquals(true, moveToCache.isCached(str[0]));
+    UnCache unCache = UnCache.getInstance(client, conf);
+    String[] ids = {"" + moveToCache.getId()};
+    unCache.initial(ids);
+    unCache.execute();
+    assertEquals(false, moveToCache.isCached(str[0]));
   }
 }
