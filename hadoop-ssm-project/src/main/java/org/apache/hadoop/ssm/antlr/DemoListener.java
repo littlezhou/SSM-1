@@ -1,4 +1,4 @@
-// Generated from /home/hadoop/github/antlr/src/main/java/Demo.g4 by ANTLR 4.6
+package org.apache.hadoop.ssm.antlr;// Generated from /home/hadoop/github/antlr/src/main/java/Demo.g4 by ANTLR 4.6
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**

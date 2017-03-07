@@ -1,9 +1,8 @@
-// Generated from /home/hadoop/github/antlr/src/main/java/Demo.g4 by ANTLR 4.6
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
+package org.apache.hadoop.ssm.antlr;// Generated from /home/hadoop/github/antlr/src/main/java/Demo.g4 by ANTLR 4.6
+
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.misc.*;

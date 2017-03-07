@@ -25,6 +25,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>4.6</version>
+    </dependency>
+    <dependency>
       <groupId>org.rocksdb</groupId>
       <artifactId>rocksdbjni</artifactId>
       <version>5.0.1</version>
@@ -100,6 +105,25 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <version>4.6</version>
+        <executions>
+          <execution>
+            <id>antlr</id>
+            <goals>
+              <goal>antlr4</goal>
+            </goals>
+            <phase>none</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <outputDirectory>src/test/java</outputDirectory>
+          <listener>true</listener>
+          <treatWarningsAsErrors>true</treatWarningsAsErrors>
+        </configuration>
       </plugin>
     </plugins>
   </build>
