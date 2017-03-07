@@ -51,7 +51,7 @@ public class RocksDBTest {
     String table = "CertainColumnFamilyTest";
     String key = "certainKey";
     String value = "certainValue";
-    dbPath = "/home/hadoop/rocksdb";
+    dbPath = "/home/hadoop/rocksdb1";
 
     List<ColumnFamilyDescriptor> columnFamilyDescriptors = new ArrayList<ColumnFamilyDescriptor>();
     Options options = new Options();
@@ -108,6 +108,7 @@ public class RocksDBTest {
 
   @After
   public void after() {
+    if (db!=null)
     db.close();
   }
 }
