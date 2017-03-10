@@ -68,7 +68,7 @@ public class CacheStatus {
   }
 
   //only contain DataNode info
-  class nodeCacheInfo {
+  public class nodeCacheInfo {
     private long cacheCapacity;
     private long cacheUsed;
     private long cacheRemaining;

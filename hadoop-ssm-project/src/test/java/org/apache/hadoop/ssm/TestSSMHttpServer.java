@@ -112,8 +112,7 @@ public class TestSSMHttpServer {
     try {
       server = new SSMHttpServer(conf, addr);
       server.start();
-      Assert.assertTrue(implies(policy.isHttpEnabled(),
-              canAccess("http", server.getHttpsAddress())));
+      Assert.assertTrue(canAccess("http", server.getHttpAddress()));
     } finally {
       if (server != null) {
         server.stop();

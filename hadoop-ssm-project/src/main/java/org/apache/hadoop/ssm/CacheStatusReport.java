@@ -24,7 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.DFSClient;
+import org.apache.hadoop.hdfs.protocol.CacheDirectiveEntry;
+import org.apache.hadoop.hdfs.protocol.CacheDirectiveInfo;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.server.protocol.DatanodeStorageReport;
 
@@ -33,12 +37,17 @@ import org.apache.hadoop.hdfs.server.protocol.DatanodeStorageReport;
  */
 public class CacheStatusReport {
   private Configuration conf;
+  private CacheStatus.nodeCacheInfo nodeCacheInfo;
+  private CacheStatus cacheStatus;
   private Map<String, List<CacheStatus.cacheFileInfo>> reportMap;
   private Map<String, CacheStatus.nodeCacheInfo> dnCacheReportMap;
-
-  public CacheStatusReport() {
-    conf = new Configuration();
+  
+  public CacheStatusReport(Configuration conf) {
+    this.conf =conf;
     reportMap = new HashMap<>();
+    cacheStatus = new CacheStatus();
+    nodeCacheInfo=cacheStatus.new nodeCacheInfo();
+    dnCacheReportMap=new HashMap<String, CacheStatus.nodeCacheInfo>();
   }
 
   /**
@@ -46,7 +55,6 @@ public class CacheStatusReport {
    */
   public CacheStatus getCacheStatusReport() throws IOException {
     DFSClient dfsClient = new DFSClient(conf);
-    CacheStatus cacheStatus = new CacheStatus();
     long cacheCapacity;
     long cacheUsed;
     long cacheRemaining;
@@ -55,7 +63,6 @@ public class CacheStatusReport {
     long cacheUsedTotal = 0;
     long cacheRemaTotal = 0;
     float cacheUsedPerTotal = 0;
-    CacheStatus.nodeCacheInfo nodeCacheInfo = null;
     int len = dfsClient.getDatanodeStorageReport(HdfsConstants.DatanodeReportType.LIVE).length;
     DatanodeStorageReport dnStorageReport;
     //get info from each dataNode
@@ -86,11 +93,26 @@ public class CacheStatusReport {
     String poolName;
     String path;
     Short replication;
-    CacheStatus.cacheFileInfo cacheFileInfo = null;
-    while (dfsClient.listCacheDirectives(null).hasNext()) {
-      poolName = dfsClient.listCacheDirectives(null).next().getInfo().getPool();
-      path = dfsClient.listCacheDirectives(null).next().getInfo().getPath().toString();
-      replication = dfsClient.listCacheDirectives(null).next().getInfo().getReplication();
+    CacheStatus.cacheFileInfo cacheFileInfo = cacheStatus.new cacheFileInfo();
+    Path path1= new Path("/test/file");
+    
+    
+    CacheDirectiveInfo filter= new CacheDirectiveInfo.Builder().build();
+//    RemoteIterator<CacheDirectiveEntry> s=dfsClient.listCacheDirectives(filter);
+
+//    CacheDirectiveEntry cacheDirectiveEntry;
+    RemoteIterator<CacheDirectiveEntry> remoteIterator=dfsClient.listCacheDirectives(filter);
+    while (remoteIterator.hasNext()) {
+      CacheDirectiveEntry cacheDirectiveEntry=dfsClient.listCacheDirectives(filter).next();
+      poolName = cacheDirectiveEntry.getInfo().getPool();
+      path = cacheDirectiveEntry.getInfo().getPath().toString();
+      replication = cacheDirectiveEntry.getInfo().getReplication();
+      
+      
+      
+//      poolName = dfsClient.listCacheDirectives(filter).next().getInfo().getPool();
+//      path = dfsClient.listCacheDirectives(filter).next().getInfo().getPath().toString();
+//      replication = dfsClient.listCacheDirectives(filter).next().getInfo().getReplication();
       if (reportMap.containsKey(poolName)) {
         List<CacheStatus.cacheFileInfo> list = reportMap.get(poolName);
         cacheFileInfo.setFilePath(path);
@@ -104,6 +126,7 @@ public class CacheStatusReport {
         list.add(cacheFileInfo);
         reportMap.put(poolName, list);
       }
+      remoteIterator.next();
     }
     cacheStatus.setCacheStatusMap(reportMap);
     cacheStatus.setdnCacheStatusMap(dnCacheReportMap);
