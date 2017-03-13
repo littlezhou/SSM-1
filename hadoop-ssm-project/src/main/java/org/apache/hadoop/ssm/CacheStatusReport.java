@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.CacheDirectiveEntry;
@@ -41,13 +40,13 @@ public class CacheStatusReport {
   private CacheStatus cacheStatus;
   private Map<String, List<CacheStatus.cacheFileInfo>> reportMap;
   private Map<String, CacheStatus.nodeCacheInfo> dnCacheReportMap;
-  
+
   public CacheStatusReport(Configuration conf) {
-    this.conf =conf;
+    this.conf = conf;
     reportMap = new HashMap<>();
     cacheStatus = new CacheStatus();
-    nodeCacheInfo=cacheStatus.new nodeCacheInfo();
-    dnCacheReportMap=new HashMap<String, CacheStatus.nodeCacheInfo>();
+    nodeCacheInfo = cacheStatus.new nodeCacheInfo();
+    dnCacheReportMap = new HashMap<String, CacheStatus.nodeCacheInfo>();
   }
 
   /**
@@ -94,25 +93,12 @@ public class CacheStatusReport {
     String path;
     Short replication;
     CacheStatus.cacheFileInfo cacheFileInfo = cacheStatus.new cacheFileInfo();
-    Path path1= new Path("/test/file");
-    
-    
-    CacheDirectiveInfo filter= new CacheDirectiveInfo.Builder().build();
-//    RemoteIterator<CacheDirectiveEntry> s=dfsClient.listCacheDirectives(filter);
-
-//    CacheDirectiveEntry cacheDirectiveEntry;
-    RemoteIterator<CacheDirectiveEntry> remoteIterator=dfsClient.listCacheDirectives(filter);
+    CacheDirectiveInfo filter = new CacheDirectiveInfo.Builder().build();
+    RemoteIterator<CacheDirectiveEntry> remoteIterator = dfsClient.listCacheDirectives(filter);
     while (remoteIterator.hasNext()) {
-      CacheDirectiveEntry cacheDirectiveEntry=dfsClient.listCacheDirectives(filter).next();
-      poolName = cacheDirectiveEntry.getInfo().getPool();
-      path = cacheDirectiveEntry.getInfo().getPath().toString();
-      replication = cacheDirectiveEntry.getInfo().getReplication();
-      
-      
-      
-//      poolName = dfsClient.listCacheDirectives(filter).next().getInfo().getPool();
-//      path = dfsClient.listCacheDirectives(filter).next().getInfo().getPath().toString();
-//      replication = dfsClient.listCacheDirectives(filter).next().getInfo().getReplication();
+      poolName = dfsClient.listCacheDirectives(filter).next().getInfo().getPool();
+      path = dfsClient.listCacheDirectives(filter).next().getInfo().getPath().toString();
+      replication = dfsClient.listCacheDirectives(filter).next().getInfo().getReplication();
       if (reportMap.containsKey(poolName)) {
         List<CacheStatus.cacheFileInfo> list = reportMap.get(poolName);
         cacheFileInfo.setFilePath(path);

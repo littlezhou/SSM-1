@@ -35,6 +35,8 @@ public class TestCacheStatusReport {
     conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, DEFAULT_BLOCK_SIZE);
     conf.setStrings(DFSConfigKeys.DFS_REPLICATION_KEY, REPLICATION_KEY);
     conf.setLong(DFSConfigKeys.DFS_DATANODE_MAX_LOCKED_MEMORY_KEY, DEFAULT_CACHE_SIZE);
+    //cacheManager rescan time
+    conf.setLong(DFSConfigKeys.DFS_NAMENODE_PATH_BASED_CACHE_REFRESH_INTERVAL_MS,1000);
 
     prevCacheManipulator = NativeIO.POSIX.getCacheManipulator();
     NativeIO.POSIX.setCacheManipulator(new NativeIO.POSIX.NoMlockCacheManipulator());
@@ -45,6 +47,7 @@ public class TestCacheStatusReport {
     dfsClient = cluster.getFileSystem().getClient();
   }
 
+  //add a file and put cache in memory 
   private void init() throws IOException, InterruptedException {
     final String file = "/test/file";
     Path dir = new Path("/test");
@@ -69,10 +72,9 @@ public class TestCacheStatusReport {
   public void TestgetCacheStatusReport() throws Exception {
     init();
     CacheStatusReport report = new CacheStatusReport(conf);
-    CacheStatus status = report.getCacheStatusReport();
     try {
-      CacheStatus status2 = report.getCacheStatusReport();
-      
+      CacheStatus status = report.getCacheStatusReport();
+//      assertEquals(false,status.getCacheCapacityTotal());
     } finally {
       cluster.shutdown();
     }
