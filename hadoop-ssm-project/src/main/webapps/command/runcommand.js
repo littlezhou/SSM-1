@@ -18,38 +18,43 @@
 "use strict";
 function run(var1) {
     var number = var1.substring(var1.length-1);
-    alert(number);
-    var url = '/ssm/v1?op=RUNCOMMAND&cmd=' + $('#cmd'+number).val();
+//    alert(number);
+    var url = '/ssm/v1?op=RUNCOMMAND&cmd=' + $('#cmd-'+number).val();
     $.ajax({
         type: 'PUT',
         url: url
     }).then(function(data) {
-        $('#stdout'+number).html('');
-        $('#stderr'+number).html('');
+        $('#stdout-'+number).html('');
+        $('#stderr-'+number).html('');
         for (var j=0;j<data.stdout.length;j++) {
-            $('#stdout'+number).append(data.stdout[j]+'<br>');
+            $('#stdout-'+number).append(data.stdout[j]+'<br>');
         }
         for (var j=0;j<data.stderr.length;j++) {
-            $('#stderr'+number).append(data.stderr[j]+'<br>');
+            $('#stderr-'+number).append(data.stderr[j]+'<br>');
         }
     });
 };
 
 var i = 0;
-function newDiv() {
+function newDiv(var2) {
     i = i+1;
-    var $div = $('<form onsubmit="return false;">'
-     +'<div class="input-group">'
-         +'<input type="text" class="form-control" id="cmd'+i+'"/>'
-         +'<span class="input-group-btn">'
-         +'<button class="btn btn-default" type="button" onclick="run(this.id)" id="btn-run-cmd'+i+'">Run!</button>'
-         +'</span>'
-     +'</div>'
-     +'<div>'
-         +'<p id="stdout'+i+'">stdout is </p>'
-         +'<p id="stderr'+i+'">stderr is </p>'
-     +'</div>'
-    +'</form>');
+    var $div = $('<div class="col-xs-10 col-md-10" >'
+                    +'<form onsubmit="return false;">'
+                    +'<div class="input-group">'
+                     +'<input type="text" class="form-control" id="cmd-'+i+'" />'
+                     +'<span class="input-group-btn">'
+                     +'<button class="btn btn-default" type="button" onclick="run(this.id)" id="btn-run-cmd-'+i+'">Run!</button>'
+                     +'</span>'
+                 +'</div>'
+                 +'<div>'
+                     +'<p id="stdout-'+i+'">stdout is </p>'
+                     +'<p id="stderr-'+i+'">stderr is </p>'
+                 +'</div>'
+                +'</form>'
+                +'</div>'
+                +'<div class="col-xs-2 col-md-2">'
+                    +'<button class="btn btn-default pull-right" id="btn-new-'+i+'" onclick="newDiv(this.id)">new</button>'
+                +'</div>');
     $("#div").append($div);
 
 };

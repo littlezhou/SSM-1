@@ -55,26 +55,25 @@
         <div class="tab-pane" id="tab-datanode"></div>
     </div>
 
-    <div class="row" >
-        <div class="col-xs-10 col-md-10" id="div" >
+    <div class="row" id="div" >
+        <div class="col-xs-10 col-md-10" >
             <form onsubmit="return false;">
                 <div class="input-group" >
-                    <input type="text" class="form-control" id="cmd0"/>
+                    <input type="text" class="form-control" id="cmd-0" />
                     <span class="input-group-btn">
-                    <button class="btn btn-default" type="button" onclick="run(this.id)" id="btn-run-cmd0">Run!</button>
+                    <button class="btn btn-default" type="button" onclick="run(this.id)" id="btn-run-cmd-0">Run!</button>
                     </span>
                 </div>
                 <div>
-                    stdout is <p id="stdout0"></p>
-                    stderr is <p id="stderr0"></p>
-                    <div id="ring" style="width:800px;height:400px;margin:0 auto;"></div>
+                    stdout is <p id="stdout-0"></p>
+                    stderr is <p id="stderr-0"></p>
+                    <div id="ring" style="width:400px;height:200px;margin:0 auto;"></div>
                 </div>
             </form>
         </div>
-
-        <button class="btn btn-default" id="btn-new" onclick="newDiv()">new</button>
-
-
+        <div class="col-xs-2 col-md-2">
+        <button class="btn btn-default pull-right" id="btn-new-0" onclick="newDiv(this.id)">new</button>
+        </div>
     </div>
 
 
