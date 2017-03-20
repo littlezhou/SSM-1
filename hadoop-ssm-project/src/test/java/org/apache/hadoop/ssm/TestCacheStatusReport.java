@@ -1,5 +1,7 @@
 package org.apache.hadoop.ssm;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -14,14 +16,13 @@ import org.apache.hadoop.hdfs.protocol.CachePoolInfo;
 import org.apache.hadoop.io.nativeio.NativeIO;
 import org.junit.Before;
 import org.junit.Test;
-
 /**
  * Created by cc on 17-3-7.
  */
 public class TestCacheStatusReport {
   private static final String REPLICATION_KEY = "3";
   private static final int DEFAULT_BLOCK_SIZE = 100;
-  private static final long DEFAULT_CACHE_SIZE = 50;// 1M  1048576
+  private static final long DEFAULT_CACHE_SIZE = 1000;// 1M  1048576
   private static NativeIO.POSIX.CacheManipulator prevCacheManipulator;
   private static Configuration conf;
   private static MiniDFSCluster cluster = null;
@@ -72,13 +73,33 @@ public class TestCacheStatusReport {
   public void TestgetCacheStatusReport() throws Exception {
     init();
     CacheStatusReport report = new CacheStatusReport(conf);
+    
+    short rep = 3;
+    Path cacheFile = new Path("/test/file");
+    CacheDirectiveInfo cacheDirectiveInfo = new CacheDirectiveInfo.Builder().setReplication(rep)
+            .setPath(cacheFile).setPool("poolA").build();
+//    Long need=dfs.listCacheDirectives(cacheDirectiveInfo).next().getStats().getFilesNeeded();
+//    Long cached=dfs.listCacheDirectives(cacheDirectiveInfo).next().getStats().getFilesCached();
+//    Long need=dfs.listCacheDirectives(null).next().getStats().getFilesNeeded();
+//    Long cached=dfs.listCacheDirectives(null).next().getStats().getFilesCached();
+//    if(need==null || need==0){
+//    }
+//    while(need != cached){
+//      Thread.sleep(1000);
+//    }
     try {
       CacheStatus status = report.getCacheStatusReport();
-//      assertEquals(false,status.getCacheCapacityTotal());
+      float percent = 0;
+      assertEquals(3000,status.getCacheCapacityTotal());
+      assertEquals(3000,status.getCacheRemainingTotal());
+      assertEquals(0,status.getCacheUsedTotal());
+//      assertEquals(0.0,status.getCacheUsedPercentageTotal());
     } finally {
       cluster.shutdown();
     }
   }
+
+  
 
 
 }
