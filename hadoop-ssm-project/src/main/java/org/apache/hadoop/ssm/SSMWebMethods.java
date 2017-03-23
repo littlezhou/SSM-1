@@ -22,11 +22,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.spi.container.ResourceFilters;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.hdfs.DFSClient;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.HdfsConfiguration;
+import org.apache.hadoop.hdfs.protocol.CacheDirectiveInfo;
+import org.apache.hadoop.hdfs.protocol.CachePoolInfo;
 import org.apache.hadoop.hdfs.web.ParamFilter;
 import org.apache.hadoop.http.JettyUtils;
+import org.apache.hadoop.io.nativeio.NativeIO;
+import org.apache.hadoop.ipc.Client;
 import org.apache.hadoop.ssm.web.resources.CommandParam;
 import org.apache.hadoop.ssm.web.resources.GetOpParam;
 import org.apache.hadoop.ssm.web.resources.PutOpParam;
+
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
@@ -43,6 +54,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
 
 /**
  * SSM web methods implementation.
@@ -122,14 +135,27 @@ public class SSMWebMethods {
     return get(op, cmd.getValue());
   }
 
-  private Response get(GetOpParam op, String cmd) {
+  private Response get(GetOpParam op, String cmd) throws IOException {
     switch (op.getValue()) {
       case SHOWCACHE: {
+        Configuration conf = new HdfsConfiguration();
+        conf.set(FS_DEFAULT_NAME_KEY, "hdfs://localhost:9000/");
+        conf.setLong(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, 67108864);
+        conf.setInt(DFSConfigKeys.DFS_BYTES_PER_CHECKSUM_KEY, 512);
+        conf.setStrings(DFSConfigKeys.DFS_REPLICATION_KEY, "1");
+        conf.setLong(DFSConfigKeys.DFS_DATANODE_MAX_LOCKED_MEMORY_KEY, 1000);
+        conf.setLong(DFSConfigKeys.DFS_NAMENODE_PATH_BASED_CACHE_REFRESH_INTERVAL_MS,30000);
+
+        DFSClient dfsClient = new DFSClient(conf);
+
+        CacheStatusReport report = new CacheStatusReport(dfsClient,conf);
+        CacheStatus status = report.getCacheStatusReport();
+
         final Map<String, Object> m = new TreeMap<String, Object>();
-        m.put("cacheCapacity", 3);
-        m.put("cacheUsed", 1);
-        m.put("cacheRemaining", 2);
-        m.put("cacheUsedPercentage", 33);
+        m.put("cacheCapacity", status.getCacheCapacityTotal());
+        m.put("cacheUsed", status.getCacheUsedTotal());
+        m.put("cacheRemaining", status.getCacheRemainingTotal());
+        m.put("cacheUsedPercentage", status.getCacheUsedPercentageTotal());
         ObjectMapper MAPPER = new ObjectMapper();
         String js = null;
         try {

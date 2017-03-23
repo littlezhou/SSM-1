@@ -1,6 +1,6 @@
 (function() {
 	"use strict";
-    $("#select").change(function() {
+    $('#select').change(function() {
         var type = $(this).find(':selected').val();
         if(type === 'line') {
             line();
@@ -14,7 +14,7 @@
             pie();
             $("#myChart3").show().siblings().hide();
         }
-    });  
+    });
 
     function line() {
         var myChart = echarts.init(document.getElementById('myChart1'));
@@ -256,7 +256,7 @@
                           name:'Cache使用情况',
                           type:'pie',
                           radius : '55%',
-                          center: ['50%', '60%'],
+                          center: ['50%', '50%'],
             //                  data:[{"name":"cacheCapacity","value":"3"},{"name":"cacheRemaining","value":2},{"name":"cacheUsed","value":1},{"name":"cacheUsedPercentage","value":33}]
                           data: (function() {
                             var arr = [];

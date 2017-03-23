@@ -23,7 +23,7 @@
         var ringChart = echarts.init(document.getElementById('ring'));
         var labelTop = {//上层样式
             normal : {
-                color :'#0099cc',
+                color :'#5fa33e',
                 label : {
                     show : true,
                     position : 'center',
@@ -53,7 +53,7 @@
         };
         var labelBottom = {//底层样式
             normal : {
-                color: '#99ccff',
+                color: '#00ff00',
                 label : {
                     show : true,
                     position : 'center',

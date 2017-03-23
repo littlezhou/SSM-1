@@ -18,8 +18,12 @@
 "use strict";
 function run(var1) {
     var number = var1.substring(var1.length-1);
-//    alert(number);
     var url = '/ssm/v1?op=RUNCOMMAND&cmd=' + $('#cmd-'+number).val();
+
+    if (($('#cmd-'+number).val()) == "showCache") {
+        url= '/ssm/v1?op=SHOWCACHE&cmd=' + $('#cmd-'+number).val();
+    }
+
     $.ajax({
         type: 'PUT',
         url: url
