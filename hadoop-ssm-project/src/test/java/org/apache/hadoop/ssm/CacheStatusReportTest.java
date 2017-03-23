@@ -19,7 +19,7 @@ import org.junit.Test;
 /**
  * Created by cc on 17-3-7.
  */
-public class TestCacheStatusReport {
+public class CacheStatusReportTest {
   private static final String REPLICATION_KEY = "3";
   private static final int DEFAULT_BLOCK_SIZE = 100;
   private static final long DEFAULT_CACHE_SIZE = 1000;// 1M  1048576
@@ -72,7 +72,7 @@ public class TestCacheStatusReport {
   @Test
   public void TestgetCacheStatusReport() throws Exception {
     init();
-    CacheStatusReport report = new CacheStatusReport(conf);
+    CacheStatusReport report = new CacheStatusReport(dfsClient,conf);
     
     short rep = 3;
     Path cacheFile = new Path("/test/file");

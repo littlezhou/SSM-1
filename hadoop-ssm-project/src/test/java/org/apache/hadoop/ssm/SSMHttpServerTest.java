@@ -40,9 +40,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(value = Parameterized.class)
-public class TestSSMHttpServer {
+public class SSMHttpServerTest {
   private static final String BASEDIR = GenericTestUtils
-          .getTempPath(TestSSMHttpServer.class.getSimpleName());
+          .getTempPath(SSMHttpServerTest.class.getSimpleName());
   private static String keystoresDir;
   private static String sslConfDir;
   private static Configuration conf;
@@ -57,7 +57,7 @@ public class TestSSMHttpServer {
 
   private final Policy policy;
 
-  public TestSSMHttpServer(Policy policy) {
+  public SSMHttpServerTest(Policy policy) {
     super();
     this.policy = policy;
   }
@@ -69,7 +69,7 @@ public class TestSSMHttpServer {
     base.mkdirs();
     conf = new Configuration();
 //    keystoresDir = new File(BASEDIR).getAbsolutePath();
-//    sslConfDir = KeyStoreTestUtil.getClasspathDir(TestSSMHttpServer.class);
+//    sslConfDir = KeyStoreTestUtil.getClasspathDir(SSMHttpServerTest.class);
 //    KeyStoreTestUtil.setupSSLConfig(keystoresDir, sslConfDir, conf, false);
     connectionFactory = URLConnectionFactory
             .newDefaultURLConnectionFactory(conf);
@@ -87,7 +87,7 @@ public class TestSSMHttpServer {
 //    base.mkdirs();
 //    conf = new Configuration();
 //    keystoresDir = new File(BASEDIR).getAbsolutePath();
-//   // sslConfDir = KeyStoreTestUtil.getClasspathDir(TestSSMHttpServer.class);
+//   // sslConfDir = KeyStoreTestUtil.getClasspathDir(SSMHttpServerTest.class);
 //    KeyStoreTestUtil.setupSSLConfig(keystoresDir, sslConfDir, conf, false);
 //    connectionFactory = URLConnectionFactory
 //            .newDefaultURLConnectionFactory(conf);
