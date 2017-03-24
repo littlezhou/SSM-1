@@ -33,6 +33,7 @@ import org.apache.hadoop.ssm.web.resources.GetOpParam;
 import org.apache.hadoop.ssm.web.resources.PutOpParam;
 
 
+
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DefaultValue;
@@ -49,7 +50,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
-import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
+import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
 
 /**
  * SSM web methods implementation.

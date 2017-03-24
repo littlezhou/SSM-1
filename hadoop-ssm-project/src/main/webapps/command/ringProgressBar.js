@@ -20,7 +20,7 @@
   	
 	var ring = function() {
 		var percent = Math.round(Math.random()*100);
-        var ringChart = echarts.init(document.getElementById('ring'));
+        var ringChart = echarts.init(document.getElementById('ring-0'));
         var labelTop = {//上层样式
             normal : {
                 color :'#5fa33e',

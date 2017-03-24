@@ -55,52 +55,47 @@
         <div class="tab-pane" id="tab-datanode"></div>
     </div>
 
-    <div class="row" id="div" >
-        <div class="col-xs-10 col-md-10" >
-            <form onsubmit="return false;">
-                <div class="input-group" >
-                    <input type="text" class="form-control" id="cmd-0" />
-                    <span class="input-group-btn">
-                    <button class="btn btn-default" data-loading-text="Running" type="button" onclick="run(this.id)" id="btn-run-cmd-0">Run!</button>
-                    </span>
-                </div>
-                <div>
+    <div class="row" id ="web-console">
+        <form onsubmit="return false;">
+            <div class="input-group" >
+                <input type="text" class="form-control" id="cmd-0" />
+                <span class="input-group-btn">
+                <button class="btn btn-default" data-loading-text="Running" type="button" onclick="run(this.id)" id="btn-run-cmd-0">Run!</button>
+                </span>
+                <span class="input-group-btn">
+                <button class="btn btn-default pull-right" id="btn-new-0" onclick="newDiv(this.id)">new</button>
+                </span>
+            </div >
+
+            <div >
+                <div id="output-0" style="display: none;">
                     stdout is <p id="stdout-0"></p>
                     stderr is <p id="stderr-0"></p>
                 </div>
-                <div id="ring" style="width:400px;height:200px;margin:0 auto;"></div>
-                <form class="form-horizontal" role="form">
-                    <div class="row">
-                        <div class="col-xs-10 col-md-10">
-                            <div id="myChart1" style="display:none;width:800px;height:400px;margin:0 auto;"></div>
-                            <div id="myChart2" style="display:none;width:800px;height:400px;margin:0 auto;"></div>
-                            <div id="myChart3" style="display:none;width:800px;height:400px;margin:0 auto;"></div>
-                        </div>
-                        <div class="form-group col-xs-2 col-md-2">
-                            <select class="form-control" id="select" name="chart" >
-                                <option value="line">line chart</option>
-                                <option value="bar">bar chart</option>
-                                <option value="pie">pie chart</option>
-                            </select>
-                        </div>
+                <div id="figure-0" class="row" style="display: none;">
+                    <div class="col-xs-10 col-md-10">
+                        <div id="myChart1-0" style="display:none;width:800px;height:400px;margin:0 auto;"></div>
+                        <div id="myChart2-0" style="display:none;width:800px;height:400px;margin:0 auto;"></div>
+                        <div id="myChart3-0" style="display:none;width:800px;height:400px;margin:0 auto;"></div>
                     </div>
-                </form>
-            </form>
-        </div>
-        <div class="col-xs-2 col-md-2">
-        <button class="btn btn-default pull-right" id="btn-new-0" onclick="newDiv(this.id)">new</button>
-        </div>
-    </div>
+                    <div class="col-xs-2 col-md-2">
+                        <select class="form-control" id="select-0" name="chart" onchange="select(this.id)">
+                            <option value="line">line chart</option>
+                            <option value="bar">bar chart</option>
+                            <option value="pie">pie chart</option>
+                        </select>
+                    </div>
+                </div>
 
+                <div id="ring-0" style="width:400px;height:200px;margin:0 auto;">
 
+                </div>
+            </div>
 
-
-
-
-
+        </form>
+    <div>
 
 </div>
-
 <script type="text/javascript" src="/static/jquery.dataTables.min.js">
 </script>
 <script type="text/javascript" src="/static/bootstrap-3.0.2/js/bootstrap.min.js">
@@ -117,11 +112,12 @@
 </script>
 <script type="text/javascript" charset="UTF-8" src="/static/echarts.js">
 </script>
-<script type="text/javascript" src="runcommand.js">
-</script>
 <script type="text/javascript" src="select.js">
 </script>
 <script type="text/javascript" src="ringProgressBar.js">
 </script>
+<script type="text/javascript" src="runcommand.js">
+</script>
+
 </body>
 </html>
