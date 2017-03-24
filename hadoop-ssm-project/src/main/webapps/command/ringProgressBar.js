@@ -23,14 +23,14 @@
         var ringChart = echarts.init(document.getElementById('ring-0'));
         var labelTop = {//上层样式
             normal : {
-                color :'#5fa33e',
+                color :'#778899',
                 label : {
                     show : true,
                     position : 'center',
                     formatter : '{b}',
                     textStyle: {
                         baseline : 'bottom',
-                        fontSize:26
+                        fontSize:13
                     }
                 },
                 labelLine : {
@@ -53,7 +53,7 @@
         };
         var labelBottom = {//底层样式
             normal : {
-                color: '#00ff00',
+                color: '#696969',
                 label : {
                     show : true,
                     position : 'center',
@@ -67,7 +67,7 @@
                 color: 'rgba( 0,0,0,0)'
             }
         };
-        var radius = [50,80];// 半径[内半径，外半径]
+        var radius = [20,40];// 半径[内半径，外半径]
 
         var ringChartOption = {
 //            title : {
