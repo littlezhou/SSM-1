@@ -30,8 +30,9 @@ import java.util.concurrent.LinkedBlockingQueue;
  * CommandPool : A singleton class to manage all commands
  */
 public class CommandPool {
-  private static CommandPool instance = new CommandPool();
   private Map<UUID, Command> commandMap;
+  private static CommandPool instance = new CommandPool();
+  private int aaa = 0;
 
   private CommandPool() {
     commandMap = new ConcurrentHashMap<>();
@@ -39,6 +40,14 @@ public class CommandPool {
 
   public static CommandPool getInstance() {
     return instance;
+  }
+
+  public void setAaa(int aaa) {
+    this.aaa = aaa;
+  }
+
+  public int getAaa() {
+    return aaa;
   }
 
   // Add a command and return its ID

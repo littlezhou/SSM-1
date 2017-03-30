@@ -59,6 +59,7 @@ import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
 @ResourceFilters(ParamFilter.class)
 public class SSMWebMethods {
   public static final Log LOG = LogFactory.getLog(SSMWebMethods.class);
+  private int  aaa = 10;
 
   private @Context ServletContext context;
   private @Context HttpServletResponse response;
@@ -84,18 +85,26 @@ public class SSMWebMethods {
       case RUNCOMMAND: {
         CommandPool commandPool = CommandPool.getInstance();
         UUID commandId = commandPool.runCommand(cmd);
-        while (!commandPool.getCommandStatus(commandId).isFinished()) {
-          try {
-            Thread.sleep(100);
-          } catch (InterruptedException e) {
-            e.printStackTrace();
+        CommandStatus commandStatus = commandPool.getCommandStatus(commandId);
+        int a;
+        if (!commandStatus.isFinished()) {
+          commandPool.setAaa(commandPool.getAaa()+aaa);
+          a = commandPool.getAaa();
+          if(a >= 100) {
+            a = 99;
+          }else {
+            a = commandPool.getAaa();
           }
         }
-        CommandStatus commandStatus = commandPool.getCommandStatus(commandId);
+        else {
+          a = 100;
+        }
+        commandStatus.setPercentage(a);
+        Double percentage = commandStatus.getPercentage();
         ObjectMapper MAPPER = new ObjectMapper();
         String js = null;
         try {
-          js = MAPPER.writeValueAsString(toJsonMap(commandStatus.getOutput()));
+          js = MAPPER.writeValueAsString(toJsonMap(commandStatus.getOutput(),commandId,percentage));
         } catch (JsonProcessingException e) {
           e.printStackTrace();
         }
@@ -106,13 +115,15 @@ public class SSMWebMethods {
     }
   }
 
-  public static Map<String, Object> toJsonMap(final CommandStatus.OutPutType outPut) {
+  public static Map<String, Object> toJsonMap(final CommandStatus.OutPutType outPut,UUID commandId,Double percentage) {
     if (outPut == null) {
       return null;
     }
     final Map<String, Object> m = new TreeMap<String, Object>();
+    m.put("percentage",percentage );
     m.put("stdout", outPut.getStdOutput());
     m.put("stderr", outPut.getStdError());
+    m.put("commandId",commandId);
     return m;
   }
 

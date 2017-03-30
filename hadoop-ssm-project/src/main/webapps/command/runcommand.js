@@ -26,22 +26,47 @@ function run(var1) {
         // line(number);
         // bar(number);
     }else {
-        // alert($('#cmd-'+number).val());
-        var url = '/ssm/v1?op=RUNCOMMAND&cmd=' + $('#cmd-'+number).val();
-        $("#output-"+number).show().siblings().hide();
-        $.ajax({
-            type: 'PUT',
-            url: url
-        }).then(function(data) {
-            $('#stdout-'+number).html('');
-            $('#stderr-'+number).html('');
-            for (var j=0;j<data.stdout.length;j++) {
-                $('#stdout-'+number).append(data.stdout[j]+'<br>');
-            }
-            for (var j=0;j<data.stderr.length;j++) {
-                $('#stderr-'+number).append(data.stderr[j]+'<br>');
-            }
-        });
+        var start = function() {
+            var url = '/ssm/v1?op=RUNCOMMAND&cmd=' + $('#cmd-'+number).val();
+            $.ajax({
+                type: 'PUT',
+                url: url,
+                beforeSend: function () {
+                    // $("#loading-0").show();
+                    $('#ring-0').show();
+                    ring(0);
+
+                }
+            }).then(function(data) {
+                var percent = data.percentage;
+                if (percent == 1.0) {
+                    ring(percent);
+                    $("#output-"+number).show().siblings().hide();
+                    $("#percentage-"+number).html('');
+                    $('#commandId-'+number).html('');
+                    $('#stdout-'+number).html('');
+                    $('#stderr-'+number).html('');
+
+                    $("#percentage-"+number).append(data.percentage);
+                    $('#commandId-'+number).append(data.commandId);
+                    for (var j=0;j<data.stdout.length;j++) {
+                        $('#stdout-'+number).append(data.stdout[j]+'<br>');
+                    }
+                    for (var j=0;j<data.stderr.length;j++) {
+                        $('#stderr-'+number).append(data.stderr[j]+'<br>');
+                    }
+
+                    window.clearInterval(end);
+
+                }else {
+                    $('#ring-0').show().siblings().hide();
+                    ring(percent);
+                }
+            });
+        };
+
+        var end = setInterval(start,1000);
+
     }
 }
 
@@ -374,10 +399,107 @@ function bar (number) {
 
     };
 
-
     // 使用刚指定的配置项和数据显示图表。
     myChart.setOption(option);
 }
+
+function ring(percent) {
+    var ringChart = echarts.init(document.getElementById('ring-0'));
+    var labelTop = {//上层样式
+        normal : {
+            color :'#778899',
+            label : {
+                show : true,
+                position : 'center',
+                formatter : '{b}',
+                textStyle: {
+                    baseline : 'bottom',
+                    fontSize:13
+                }
+            },
+            labelLine : {
+                show : false
+            }
+        }
+    };
+    var labelFromatter = {//环内样式
+        normal : {//默认样式
+            label : {//标签
+                formatter : function (a,b,c){return 100 - c + '%'},
+                // labelLine.length：30,  //线长，从外边缘起计算，可为负值
+                textStyle: {//标签文本样式
+                    color:'black',
+                    align :'center',
+                    baseline : 'top'//垂直对其方式
+                }
+            }
+        },
+    };
+    var labelBottom = {//底层样式
+        normal : {
+            color: '#696969',
+            label : {
+                show : true,
+                position : 'center',
+                fontSize:22
+            },
+            labelLine : {
+                show : false
+            }
+        },
+        emphasis: {//悬浮式样式
+            color: 'rgba( 0,0,0,0)'
+        }
+    };
+    var radius = [20,40];// 半径[内半径，外半径]
+
+    var ringChartOption = {
+//            title : {
+//                text: 'echarts实现圆环进度条',
+//                subtext: '随机数字',
+//                x:'center',
+//                //正标题样式
+//                textStyle: {
+//                    fontSize:44,
+//                    fontFamily:'Arial',
+//                    fontWeight:100,
+//                    //color:'#1a4eb0',
+//                },
+//                //副标题样式
+//                subtextStyle: {
+//                    fontSize:28,
+//                    fontFamily:'Arial',
+//                    color:"#1a4eb0",
+//                },
+//            },
+        animation:false,
+        tooltip : {         // 提示框. Can be overwrited by series or data
+            trigger: 'axis',
+            //show: true,   //default true
+            showDelay: 0,
+            hideDelay: 50,
+            transitionDuration:0,
+            borderRadius : 8,
+            borderWidth: 2,
+            padding: 10,    // [5, 10, 15, 20]
+        },
+        series : [
+            {
+                type : 'pie',
+                center : ['50%', '50%'],//圆心坐标（div中的%比例）
+                radius : radius,//半径
+                itemStyle : labelTop,//graphStyleA,//图形样式 // 当查到的数据不存在（并非为0），此属性隐藏
+                data : [
+                    {name:'完成率', value:percent,itemStyle : labelTop},
+                    {name:(percent*100)+'%', value:1-percent, itemStyle : labelBottom}
+                ]
+            }
+        ]
+    };
+    ringChart.setOption(ringChartOption);
+}
+
+
 
 
 
