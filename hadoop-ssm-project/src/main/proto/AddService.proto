@@ -1,0 +1,11 @@
+package rpcTest.protobuf;
+
+option java_package = "rpcTest.protobuf";
+option java_outer_classname = "Add";
+option java_generic_services = true;
+option java_generate_equals_and_hash = true;
+import "add_test.proto";
+
+service AddService {
+    rpc add(AddParameters) returns (AddResult);
+}

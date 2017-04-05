@@ -1,16 +1,20 @@
 package org.apache.hadoop.ssm;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.DFSUtilClient;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
+import org.apache.hadoop.hdfs.client.HdfsClientConfigKeys;
 import org.apache.hadoop.hdfs.protocol.FilesAccessInfo;
-import org.apache.hadoop.ssm.api.Expression.*;
+import org.apache.hadoop.ssm.api.Expression.SSMRule;
 import org.apache.hadoop.ssm.parse.SSMRuleParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -54,6 +58,12 @@ public class SSMServer {
       }
       decisionMaker.execution(dfsClient, conf, filesAccessInfo);
     }
+  }
+
+  protected InetSocketAddress getRpcServerAddress(Configuration conf) {
+//    URI filesystemURI = FileSystem.getDefaultUri(conf);
+    return InetSocketAddress.createUnresolved("localhost",
+            9998);
   }
 
   public static void main(String[] args) throws Exception {

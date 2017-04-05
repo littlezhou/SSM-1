@@ -1,0 +1,12 @@
+package rpcTest.protobuf;
+
+option java_package = "rpcTest.protobuf";
+option java_outer_classname = "ClientProto";
+message AddParameters {
+	optional int32 para1 =1;
+	optional int32 para2 = 3;
+}
+
+message AddResult {
+	optional int32 result =1;
+}
