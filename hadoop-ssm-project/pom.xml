@@ -25,6 +25,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.rocksdb</groupId>
+      <artifactId>rocksdbjni</artifactId>
+      <version>5.0.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs-client</artifactId>
     </dependency>
@@ -71,7 +76,11 @@
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4-runtime</artifactId>
+      <version>4.5</version>
+    </dependency>
     <!--test-->
     <dependency>
       <groupId>junit</groupId>
@@ -92,6 +101,21 @@
             <phase>generate-sources</phase>
             <goals>
               <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <version>4.5</version>
+        <configuration>
+          <visitor>true</visitor>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>antlr4</goal>
             </goals>
           </execution>
         </executions>
