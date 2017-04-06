@@ -20,49 +20,58 @@
 function run(var1) {
     var number = var1.substring(var1.length-1);
     if (($('#cmd-'+number).val()) == "showCache") {
-        var url= '/ssm/v1?op=SHOWCACHE&cmd=' + $('#cmd-'+number).val();
+        // var url= '/ssm/v1?op=SHOWCACHE&cmd=' + $('#cmd-'+number).val();
         $("#figure-"+number).show().siblings().hide();
         pie(number);
         // line(number);
         // bar(number);
     }else {
+        var url = '/ssm/v1?op=RUNCOMMAND&cmd=' + $('#cmd-'+number).val();
+        var uuid;
+        var percent;
+        $.ajax({
+            type: 'PUT',
+            url: url,
+            beforeSend: function () {
+                // $("#loading-0").show();
+                $('#ring-0').show();
+                ring(0);
+
+            }
+        }).then(function(data) {
+            uuid = data.uuid;
+        });
         var start = function() {
-            var url = '/ssm/v1?op=RUNCOMMAND&cmd=' + $('#cmd-'+number).val();
             $.ajax({
-                type: 'PUT',
-                url: url,
-                beforeSend: function () {
-                    // $("#loading-0").show();
-                    $('#ring-0').show();
-                    ring(0);
+                type: 'get',
+                url: '/ssm/v1?op=RUN',
+                data : {uuid:uuid}
+            }).then(function(result) {
+                    percent = result.percentage;
+                    if (percent == 1.0) {
+                        ring(percent);
+                        $("#output-" + number).show().siblings().hide();
+                        $("#percentage-" + number).html('');
+                        $('#commandId-' + number).html('');
+                        $('#stdout-' + number).html('');
+                        $('#stderr-' + number).html('');
 
-                }
-            }).then(function(data) {
-                var percent = data.percentage;
-                if (percent == 1.0) {
-                    ring(percent);
-                    $("#output-"+number).show().siblings().hide();
-                    $("#percentage-"+number).html('');
-                    $('#commandId-'+number).html('');
-                    $('#stdout-'+number).html('');
-                    $('#stderr-'+number).html('');
+                        $("#percentage-" + number).append(result.percentage);
+                        $('#commandId-' + number).append(result.uuid);
+                        for (var j = 0; j < result.stdout.length; j++) {
+                            $('#stdout-' + number).append(result.stdout[j] + '<br>');
+                        }
+                        for (var j = 0; j < result.stderr.length; j++) {
+                            $('#stderr-' + number).append(result.stderr[j] + '<br>');
+                        }
 
-                    $("#percentage-"+number).append(data.percentage);
-                    $('#commandId-'+number).append(data.commandId);
-                    for (var j=0;j<data.stdout.length;j++) {
-                        $('#stdout-'+number).append(data.stdout[j]+'<br>');
+                        window.clearInterval(end);
+
+                    } else {
+                        $('#ring-0').show().siblings().hide();
+                        ring(percent);
                     }
-                    for (var j=0;j<data.stderr.length;j++) {
-                        $('#stderr-'+number).append(data.stderr[j]+'<br>');
-                    }
-
-                    window.clearInterval(end);
-
-                }else {
-                    $('#ring-0').show().siblings().hide();
-                    ring(percent);
-                }
-            });
+                });
         };
 
         var end = setInterval(start,1000);

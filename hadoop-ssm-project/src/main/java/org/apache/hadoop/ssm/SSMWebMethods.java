@@ -20,6 +20,7 @@ package org.apache.hadoop.ssm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.spi.container.ResourceFilters;
+import javafx.geometry.Pos;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -28,20 +29,12 @@ import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.web.ParamFilter;
 import org.apache.hadoop.http.JettyUtils;
-import org.apache.hadoop.ssm.web.resources.CommandParam;
-import org.apache.hadoop.ssm.web.resources.GetOpParam;
-import org.apache.hadoop.ssm.web.resources.PutOpParam;
-
+import org.apache.hadoop.ssm.web.resources.*;
 
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -51,6 +44,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 
 import static org.apache.hadoop.fs.FileSystem.FS_DEFAULT_NAME_KEY;
+import static org.apache.hadoop.ssm.web.resources.PutOpParam.Op.ADDRULE;
 
 /**
  * SSM web methods implementation.
@@ -84,8 +78,8 @@ public class SSMWebMethods {
       }
       case RUNCOMMAND: {
         CommandPool commandPool = CommandPool.getInstance();
-        UUID commandId = commandPool.runCommand(cmd);
-        CommandStatus commandStatus = commandPool.getCommandStatus(commandId);
+        UUID uuid = commandPool.runCommand(cmd);
+        CommandStatus commandStatus = commandPool.getCommandStatus(uuid);
         int a;
         if (!commandStatus.isFinished()) {
           commandPool.setAaa(commandPool.getAaa()+aaa);
@@ -104,7 +98,7 @@ public class SSMWebMethods {
         ObjectMapper MAPPER = new ObjectMapper();
         String js = null;
         try {
-          js = MAPPER.writeValueAsString(toJsonMap(commandStatus.getOutput(),commandId,percentage));
+          js = MAPPER.writeValueAsString(toJsonMap(commandStatus.getOutput(),uuid,percentage));
         } catch (JsonProcessingException e) {
           e.printStackTrace();
         }
@@ -115,7 +109,7 @@ public class SSMWebMethods {
     }
   }
 
-  public static Map<String, Object> toJsonMap(final CommandStatus.OutPutType outPut,UUID commandId,Double percentage) {
+  public static Map<String, Object> toJsonMap(final CommandStatus.OutPutType outPut,UUID uuid,Double percentage) {
     if (outPut == null) {
       return null;
     }
@@ -123,9 +117,33 @@ public class SSMWebMethods {
     m.put("percentage",percentage );
     m.put("stdout", outPut.getStdOutput());
     m.put("stderr", outPut.getStdError());
-    m.put("commandId",commandId);
+    m.put("uuid",uuid);
     return m;
   }
+
+
+//  /** Handle HTTP POST request. */
+//  @POST
+//  @Produces({MediaType.APPLICATION_OCTET_STREAM + "; " + JettyUtils.UTF_8,
+//          MediaType.APPLICATION_JSON + "; " + JettyUtils.UTF_8})
+//  public Response post(
+//    @QueryParam(PostOpParam.NAME) @DefaultValue(PostOpParam.DEFAULT)
+//      final PostOpParam op){
+//    return post(op);
+//  }
+//
+//  private Response post(PostOpParam op){
+//    switch (op.getValue()) {
+//      case APPEND: {
+//
+//      }
+//
+//      default:
+//        throw new UnsupportedOperationException(op + " is not supported");
+//    }
+//  }
+
+
 
   /** Handle HTTP GET request. */
   @GET
@@ -134,14 +152,13 @@ public class SSMWebMethods {
   public Response get(
     @QueryParam(GetOpParam.NAME) @DefaultValue(PutOpParam.DEFAULT)
     final GetOpParam op,
-    @QueryParam(CommandParam.NAME) @DefaultValue(CommandParam.DEFAULT)
-    final CommandParam cmd
-
+    @QueryParam(UUIDParam.NAME) @DefaultValue(UUIDParam.DEFAULT)
+    final UUIDParam uuid
   ) throws IOException, InterruptedException {
-    return get(op, cmd.getValue());
+    return get(op, UUID.fromString(uuid.getValue()));
   }
 
-  private Response get(GetOpParam op, String cmd) throws IOException {
+  private Response get(GetOpParam op, UUID uuid) throws IOException {
     switch (op.getValue()) {
       case SHOWCACHE: {
         Configuration conf = new HdfsConfiguration();
@@ -171,6 +188,34 @@ public class SSMWebMethods {
         }
         return Response.ok(js).type(MediaType.APPLICATION_JSON).build();
       }
+      case RUN: {
+        CommandPool commandPool = CommandPool.getInstance();
+//        UUID commandId = commandPool.runCommand(cmd);
+        CommandStatus commandStatus = commandPool.getCommandStatus(uuid);
+        int a;
+        if (!commandStatus.isFinished()) {
+          commandPool.setAaa(commandPool.getAaa()+aaa);
+          a = commandPool.getAaa();
+          if(a >= 100) {
+            a = 99;
+          }else {
+            a = commandPool.getAaa();
+          }
+        }
+        else {
+          a = 100;
+        }
+        commandStatus.setPercentage(a);
+        Double percentage = commandStatus.getPercentage();
+        ObjectMapper MAPPER = new ObjectMapper();
+        String js = null;
+        try {
+          js = MAPPER.writeValueAsString(toJsonMap1(commandStatus.getOutput(),uuid,percentage));
+        } catch (JsonProcessingException e) {
+          e.printStackTrace();
+        }
+        return Response.ok(js).type(MediaType.APPLICATION_JSON).build();
+      }
       case GETCOMMANDSTATUS: {
 
       }
@@ -178,5 +223,15 @@ public class SSMWebMethods {
         throw new UnsupportedOperationException(op + " is not supported");
     }
   }
-
+  public static Map<String, Object> toJsonMap1(final CommandStatus.OutPutType outPut,UUID uuid,Double percentage) {
+    if (outPut == null) {
+      return null;
+    }
+    final Map<String, Object> m = new TreeMap<String, Object>();
+    m.put("percentage",percentage );
+    m.put("stdout", outPut.getStdOutput());
+    m.put("stderr", outPut.getStdError());
+    m.put("uuid",uuid);
+    return m;
+  }
 }

@@ -29,7 +29,7 @@ public class UUIDParam extends StringParam {
   /** Default parameter value. */
   public static final String DEFAULT = "";
 
-  private static String UUID_PATTERN = "^[A-Za-z_][A-Za-z0-9._ -/]*[$]?$";
+  private static String UUID_PATTERN = "^[A-Za-z0-9._ -/]*[$]?$";
   private static Domain domain = new Domain(NAME,
       Pattern.compile(UUID_PATTERN));
 

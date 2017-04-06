@@ -19,50 +19,43 @@ package org.apache.hadoop.ssm.web.resources;
 
 import java.net.HttpURLConnection;
 
-/** Http GET operation parameter. */
-public class GetOpParam extends HttpOpParam<GetOpParam.Op> {
-
-  /** Get operations. */
+/** Http POST operation parameter. */
+public class PostOpParam extends HttpOpParam<PostOpParam.Op> {
+  /** Post operations. */
   public enum Op implements HttpOpParam.Op {
-    GETCOMMANDSTATUS(false, HttpURLConnection.HTTP_OK),
-    SHOWCACHE(false, HttpURLConnection.HTTP_OK),
-    RUN(false, HttpURLConnection.HTTP_OK),
+    APPEND(true, HttpURLConnection.HTTP_OK),
+
+    CONCAT(false, HttpURLConnection.HTTP_OK),
+
 
     NULL(false, HttpURLConnection.HTTP_NOT_IMPLEMENTED);
 
-    final boolean redirect;
+    final boolean doOutputAndRedirect;
     final int expectedHttpResponseCode;
-    final boolean requireAuth;
 
-    Op(final boolean redirect, final int expectedHttpResponseCode) {
-      this(redirect, expectedHttpResponseCode, false);
-    }
-
-    Op(final boolean redirect, final int expectedHttpResponseCode,
-        final boolean requireAuth) {
-      this.redirect = redirect;
+    Op(final boolean doOutputAndRedirect, final int expectedHttpResponseCode) {
+      this.doOutputAndRedirect = doOutputAndRedirect;
       this.expectedHttpResponseCode = expectedHttpResponseCode;
-      this.requireAuth = requireAuth;
     }
 
     @Override
     public Type getType() {
-      return HttpOpParam.Type.GET;
+      return Type.POST;
     }
 
     @Override
     public boolean getRequireAuth() {
-      return requireAuth;
-    }
-
-    @Override
-    public boolean getDoOutput() {
       return false;
     }
 
     @Override
+    public boolean getDoOutput() {
+      return doOutputAndRedirect;
+    }
+
+    @Override
     public boolean getRedirect() {
-      return redirect;
+      return doOutputAndRedirect;
     }
 
     @Override
@@ -70,6 +63,7 @@ public class GetOpParam extends HttpOpParam<GetOpParam.Op> {
       return expectedHttpResponseCode;
     }
 
+    /** @return a URI query string. */
     @Override
     public String toQueryString() {
       return NAME + "=" + this;
@@ -82,7 +76,7 @@ public class GetOpParam extends HttpOpParam<GetOpParam.Op> {
    * Constructor.
    * @param str a string representation of the parameter value.
    */
-  public GetOpParam(final String str) {
+  public PostOpParam(final String str) {
     super(DOMAIN, DOMAIN.parse(str));
   }
 
