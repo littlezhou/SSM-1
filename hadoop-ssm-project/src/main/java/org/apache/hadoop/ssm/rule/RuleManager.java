@@ -25,7 +25,10 @@ import org.apache.hadoop.ssm.sql.CommandInfo;
 import org.apache.hadoop.ssm.sql.DBAdapter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manage and execute rules.
@@ -35,6 +38,12 @@ public class RuleManager {
   private SSMServer ssm;
   private Configuration conf;
   private DBAdapter dbAdapter;
+  private boolean isClosed = false;
+
+  private Map<Long, RuleInfo> mapRules = new HashMap<>();
+
+  // TODO: configurable
+  public ExecutorScheduler execScheduler = new ExecutorScheduler(4);
 
   public RuleManager(SSMServer ssm, Configuration conf, DBAdapter dbAdapter) {
     this.ssm = ssm;
@@ -89,10 +98,15 @@ public class RuleManager {
   }
 
   public RuleInfo getRuleInfo(long ruleID) throws IOException {
+    RuleInfo info = mapRules.get(ruleID);
+    if (info != null) {
+      return info;
+    }
     return dbAdapter.getRuleInfo(ruleID);
   }
 
   public List<RuleInfo> getRuleInfo() throws IOException {
+    Collection<RuleInfo> infos = mapRules.values();
     return dbAdapter.getRuleInfo();
   }
 
@@ -107,6 +121,9 @@ public class RuleManager {
     dbAdapter.insertCommandsTable((CommandInfo[])commands.toArray());
   }
 
+  public boolean isClosed() {
+    return isClosed;
+  }
 
   /**
    * Init RuleManager, this includes:
@@ -115,6 +132,13 @@ public class RuleManager {
    * @throws IOException
    */
   public void init() throws IOException {
+    // Load rules table
+    List<RuleInfo> rules = dbAdapter.getRuleInfo();
+    for (RuleInfo rule : rules) {
+      mapRules.put(rule.getId(), rule);
+    }
+
+    // Submit runnable rules to scheduler
   }
 
   /**
@@ -127,6 +151,10 @@ public class RuleManager {
    * Stop services
    */
   public void stop() {
+    isClosed = true;
+    if (execScheduler != null) {
+      execScheduler.shutdown();
+    }
   }
 
   /**

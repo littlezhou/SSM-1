@@ -55,6 +55,10 @@ public class RuleQueryExecutor implements Runnable {
     this.adapter = adapter;
   }
 
+  public TranslateResult getTranslateResult() {
+    return tr;
+  }
+
   private String unfoldSqlStatement(String sql) {
     return unfoldVariables(unfoldFunctionCalls(sql));
   }
