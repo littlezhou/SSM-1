@@ -64,6 +64,20 @@ public class TestDBUtil {
     return getUniqueFilePath() + ".db";
   }
 
+  public static Connection getUniqueEmptySqliteDBInstance()
+      throws IOException, SQLException, ClassNotFoundException {
+    String dbFile = getUniqueDBFilePath();
+    Connection conn = null;
+    try {
+      conn = Util.createSqliteConnection(dbFile);
+      Util.initializeDataBase(conn);
+      return conn;
+    } finally {
+      File file = new File(dbFile);
+      file.deleteOnExit();
+    }
+  }
+
   public static boolean copyFile(String srcPath, String destPath) {
     boolean flag = false;
     File src = new File(srcPath);

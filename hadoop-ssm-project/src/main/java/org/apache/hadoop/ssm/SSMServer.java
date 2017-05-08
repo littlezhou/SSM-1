@@ -27,6 +27,7 @@ import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.ipc.RemoteException;
 import org.apache.hadoop.ssm.rule.RuleManager;
 import org.apache.hadoop.ssm.sql.DBAdapter;
+import org.apache.hadoop.ssm.sql.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.hadoop.util.ExitUtil.terminate;
 
@@ -51,6 +55,7 @@ public class SSMServer {
   private Configuration conf;
   private DistributedFileSystem fs = null;
   private OutputStream outSSMIdFile;
+  private List<ModuleSequenceProto> modules = new ArrayList<>();
   static final Path SSM_ID_PATH = new Path("/system/ssm.id");
   public static final Logger LOG = LoggerFactory.getLogger(SSMServer.class);
 
@@ -60,8 +65,11 @@ public class SSMServer {
     httpServer = new SSMHttpServer(this, conf);
     rpcServer = new SSMRpcServer(this, conf);
     statesManager = new StatesManager(this, conf);
-    ruleManager = new RuleManager(this, conf, null); // TODO: to be replaced
+    ruleManager = new RuleManager(this, conf); // TODO: to be replaced
     commandExecutor = new CommandExecutor(this, conf);
+    modules.add(statesManager);
+    modules.add(ruleManager);
+    modules.add(commandExecutor);
   }
 
   public StatesManager getStatesManager() {
@@ -149,31 +157,50 @@ public class SSMServer {
     rpcServer.start();
     httpServer.start();
 
+    DBAdapter dbAdapter = getDBAdapter();
 
+    for (ModuleSequenceProto m : modules) {
+      m.init(dbAdapter);
+    }
 
-
-
-    statesManager.start();
-    ruleManager.start();
-    commandExecutor.start();
+    for (ModuleSequenceProto m : modules) {
+      m.start();
+    }
   }
 
-  public DBAdapter getDBAdapter() {
-
-    return null;
-  }
-
-  public URI getDBUri() {
-    // TODO: Find the latest SSM DB available, this contains 3 cases:
-    //  remote checkpoint / local / create new DB
+  private void stop() throws IOException {
+    for (int i = modules.size() - 1 ; i >= 0; i--) {
+      modules.get(i).stop();
+    }
   }
 
   /**
    * Waiting services to exit.
    */
   private void join() throws Exception {
-    //httpServer.join();
+    for (int i = modules.size() - 1 ; i >= 0; i--) {
+      modules.get(i).join();
+    }
+
+    httpServer.join();
     rpcServer.join();
+  }
+
+  public DBAdapter getDBAdapter() throws Exception {
+    Connection conn = getDBConnection();
+    return new DBAdapter(conn);
+  }
+
+  public Connection getDBConnection() throws Exception {
+    String dburi = getDBUri();
+    Connection conn = Util.createConnection(dburi.toString(), null, null);
+    return conn;
+  }
+
+  public String getDBUri() {
+    // TODO: Find the latest SSM DB available, this contains 3 cases:
+    //  remote checkpoint / local / create new DB
+    return null;
   }
 
   private OutputStream checkAndMarkRunning() throws IOException {

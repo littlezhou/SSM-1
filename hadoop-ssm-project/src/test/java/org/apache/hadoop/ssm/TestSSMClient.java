@@ -24,16 +24,20 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.ssm.protocol.SSMClient;
 import org.apache.hadoop.ssm.rule.RuleInfo;
 import org.apache.hadoop.ssm.rule.RuleState;
+import org.apache.hadoop.ssm.sql.TestDBUtil;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URI;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestSSMClient {
 
@@ -51,7 +55,11 @@ public class TestSSMClient {
         uriList.get(0).toString());
 
     // rpcServer start in SSMServer
-    SSMServer.createSSM(null, conf);
+    SSMServer server = mock(SSMServer.class);
+    Connection conn = TestDBUtil.getUniqueEmptySqliteDBInstance();
+    when(server.getDBConnection()).thenReturn(conn);
+    Connection c = server.getDBConnection();
+    server.createSSM(null, conf);
     SSMClient ssmClient = new SSMClient(conf);
 
     //test getServiceStatus

@@ -30,11 +30,10 @@ public class Util {
   public static Connection createConnection(String url,
       String userName, String password)
       throws ClassNotFoundException, SQLException {
-    String driver = null;
     if (url.startsWith("jdbc:sqlite:")) {
       Class.forName("org.sqlite.JDBC");
     } else if (url.startsWith("jdbc:mysql:")) {
-      Class.forName()
+      Class.forName("com.mysql.jdbc.Driver");
     }
     Connection conn = DriverManager.getConnection(url, userName, password);
     return conn;

@@ -4,9 +4,6 @@ import org.apache.hadoop.ssm.sql.DBAdapter;
 
 import java.io.IOException;
 
-/**
- * Created by root on 5/8/17.
- */
 public interface ModuleSequenceProto {
   enum State {
     INITING,
