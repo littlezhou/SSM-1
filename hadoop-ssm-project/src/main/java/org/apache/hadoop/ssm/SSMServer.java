@@ -26,6 +26,7 @@ import org.apache.hadoop.hdfs.protocol.AlreadyBeingCreatedException;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.ipc.RemoteException;
 import org.apache.hadoop.ssm.rule.RuleManager;
+import org.apache.hadoop.ssm.sql.DBAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,19 +48,16 @@ public class SSMServer {
   private CommandExecutor commandExecutor;
   private SSMHttpServer httpServer;
   private SSMRpcServer rpcServer;
-  private Configuration config;
+  private Configuration conf;
   private DistributedFileSystem fs = null;
-  private OutputStream out;
+  private OutputStream outSSMIdFile;
   static final Path SSM_ID_PATH = new Path("/system/ssm.id");
   public static final Logger LOG = LoggerFactory.getLogger(SSMServer.class);
 
   SSMServer(Configuration conf) throws IOException, URISyntaxException {
-    String rpcAddr = conf.get("dfs.ssm.namenode.rpcserver");
-    URI rpcURL = new URI(rpcAddr);
-    this.fs = (DistributedFileSystem) FileSystem.get(rpcURL, conf);
-    config = conf;
+    this.conf = conf;
     InetSocketAddress addr = InetSocketAddress.createUnresolved("localhost", 9871);
-    httpServer = new SSMHttpServer(conf, addr);
+    httpServer = new SSMHttpServer(this, conf);
     rpcServer = new SSMRpcServer(this, conf);
     statesManager = new StatesManager(this, conf);
     ruleManager = new RuleManager(this, conf, null); // TODO: to be replaced
@@ -87,12 +85,10 @@ public class SSMServer {
    */
   public static SSMServer createSSM(String[] args, Configuration conf)
       throws Exception {
-    SSMServer ssm = new SSMServer(conf);
-    ssm.out = ssm.checkAndMarkRunning();
-    if (ssm.out == null) {
-      // Exit if there is another one running.
-      throw new IOException("Another SSMServer is running");
+    if (args != null) {
+      // TODO: handle args
     }
+    SSMServer ssm = new SSMServer(conf);
     ssm.runSSMDaemons();
     return ssm;
   }
@@ -134,11 +130,42 @@ public class SSMServer {
    * @throws Exception
    */
   public void runSSMDaemons() throws Exception {
-//    httpServer.start();
+    String nnRpcAddr = conf.get(
+        SSMConfigureKeys.DFS_SSM_NAMENODE_RPCSERVER_KEY);
+    if (nnRpcAddr == null) {
+      throw new IOException("Can not find NameNode RPC server address. "
+          + "Please configure it through '"
+          + SSMConfigureKeys.DFS_SSM_NAMENODE_RPCSERVER_KEY + "'.");
+    }
+    URI rpcURL = new URI(nnRpcAddr);
+    this.fs = (DistributedFileSystem) FileSystem.get(rpcURL, conf);
+    outSSMIdFile = checkAndMarkRunning();
+    if (outSSMIdFile == null) {
+      // Exit if there is another one running.
+      throw new IOException("Another SSMServer is running");
+    }
+
+    // Init and start RPC server and REST server
     rpcServer.start();
-    commandExecutor.start();
+    httpServer.start();
+
+
+
+
+
     statesManager.start();
     ruleManager.start();
+    commandExecutor.start();
+  }
+
+  public DBAdapter getDBAdapter() {
+
+    return null;
+  }
+
+  public URI getDBUri() {
+    // TODO: Find the latest SSM DB available, this contains 3 cases:
+    //  remote checkpoint / local / create new DB
   }
 
   /**
@@ -147,12 +174,6 @@ public class SSMServer {
   private void join() throws Exception {
     //httpServer.join();
     rpcServer.join();
-  }
-
-  protected InetSocketAddress getRpcServerAddress(Configuration conf) {
-    String[] strings = conf.get("dfs.ssm.rpcserver").split(":");
-    return InetSocketAddress.createUnresolved(strings[strings.length - 2]
-        , Integer.parseInt(strings[strings.length - 1]));
   }
 
   private OutputStream checkAndMarkRunning() throws IOException {

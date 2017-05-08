@@ -27,7 +27,6 @@ import org.apache.hadoop.ssm.rule.RuleState;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,16 +45,14 @@ public class TestSSMClient {
     // dfs not used , but datanode.ReplicaNotFoundException throws without dfs
     final DistributedFileSystem dfs = cluster.getFileSystem();
 
-    InetSocketAddress addr = new InetSocketAddress("localhost",
-        SSMConfigureKeys.DFS_SSM_RPC_PROT_DEFAULT);
-
     final Collection<URI> namenodes = DFSUtil.getInternalNsRpcUris(conf);
     List<URI> uriList = new ArrayList<>(namenodes);
-    conf.set("dfs.ssm.namenode.rpcserver", uriList.get(0).toString());
+    conf.set(SSMConfigureKeys.DFS_SSM_NAMENODE_RPCSERVER_KEY,
+        uriList.get(0).toString());
 
     // rpcServer start in SSMServer
     SSMServer.createSSM(null, conf);
-    SSMClient ssmClient = new SSMClient(conf, addr);
+    SSMClient ssmClient = new SSMClient(conf);
 
     //test getServiceStatus
     String state = ssmClient.getServiceStatus().getState().name();
@@ -66,12 +63,15 @@ public class TestSSMClient {
     assertEquals(ruleInfo.getState(), RuleState.ACTIVE);
 
     //test single SSM
+    boolean caughtException = false;
     try {
-      conf.set("dfs.ssm.rpcserver", "localhost:7043");
+      conf.set(SSMConfigureKeys.DFS_SSM_RPC_ADDRESS_KEY, "localhost:8043");
       SSMServer.createSSM(null, conf);
     } catch (IOException e) {
-      assertEquals("java.io.IOException: Another SSMServer is running", e.toString());
+      assertEquals("java.io.IOException: Another SSMServer is running",
+          e.toString());
+      caughtException = true;
     }
-    cluster.close();
+    assertTrue(caughtException);
   }
 }
