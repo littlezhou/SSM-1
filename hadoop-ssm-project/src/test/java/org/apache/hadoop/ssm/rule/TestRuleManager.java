@@ -17,7 +17,11 @@
  */
 package org.apache.hadoop.ssm.rule;
 
+import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.hdfs.DFSUtil;
+import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.ssm.sql.DBAdapter;
+import org.apache.hadoop.ssm.sql.FileStatusInternal;
 import org.apache.hadoop.ssm.sql.TestDBUtil;
 import org.apache.hadoop.ssm.sql.Util;
 import org.junit.Assert;
@@ -217,6 +221,75 @@ public class TestRuleManager {
     Assert.assertTrue(allRules.size() == 2 * nRules);
     for (RuleInfo info : allRules) {
       System.out.println(info);
+    }
+  }
+
+  @Test
+  public void testMultiThread() throws Exception {
+    String rule = "file: every 1s \n | length > 10 | cachefile";
+
+    long now = System.currentTimeMillis();
+
+    long length = 100;
+    long fid = 10000;
+    FileStatusInternal[] files = { new FileStatusInternal(length, false, 3,
+        1024, now, now, null, null, null, null,
+        "testfile".getBytes(), "/tmp", fid, 0, null, (byte)3, null) };
+
+    dbAdapter.insertFiles(files);
+    long rid = ruleManager.submitRule(rule, RuleState.DISABLED);
+    ruleManager.updateRuleInfo(rid, null, 1, 1, 1);
+
+    long start = System.currentTimeMillis();
+
+    Thread[] threads = new Thread[] {
+ //       new Thread(new RuleInfoUpdater(rid, 3)),
+        new Thread(new RuleInfoUpdater(rid, 7))} ;
+
+    for (Thread t : threads) {
+      t.start();
+    }
+
+    for (Thread t : threads) {
+      t.join();
+    }
+
+    long end = System.currentTimeMillis();
+    System.out.println("Time used = " + (end - start) + " ms");
+
+    RuleInfo res = ruleManager.getRuleInfo(rid);
+    System.out.println(res);
+  }
+
+  private class RuleInfoUpdater implements Runnable {
+    private long ruleid;
+    private int index;
+
+    public RuleInfoUpdater(long ruleid, int index) {
+      this.ruleid = ruleid;
+      this.index = index;
+    }
+
+    @Override
+    public void run() {
+      long lastCheckTime;
+      long checkedCount;
+      int commandsGen;
+      try {
+        for (int i = 0; i < 1000; i++) {
+          RuleInfo info = ruleManager.getRuleInfo(ruleid);
+          lastCheckTime = info.getLastCheckTime();
+          checkedCount = info.getCountConditionChecked();
+          commandsGen = (int)info.getCountConditionFulfilled();
+          System.out.println(lastCheckTime + " " + checkedCount + " " + commandsGen);
+          Assert.assertTrue(lastCheckTime == checkedCount);
+          Assert.assertTrue(checkedCount == commandsGen);
+          ruleManager.updateRuleInfo(ruleid, null,
+              checkedCount + index, index, index);
+        }
+      } catch (Exception e) {
+        Assert.fail("Can not have exception here.");
+      }
     }
   }
 }

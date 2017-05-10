@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.ssm.rule;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ssm.ModuleSequenceProto;
 import org.apache.hadoop.ssm.SSMServer;
@@ -30,10 +31,8 @@ import org.apache.hadoop.ssm.sql.ExecutionContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manage and execute rules.
@@ -45,13 +44,16 @@ public class RuleManager implements ModuleSequenceProto {
   private DBAdapter dbAdapter;
   private boolean isClosed = false;
 
-  private Map<Long, RuleInfo> mapRules = new HashMap<>();
+  private ConcurrentHashMap<Long, RuleInfo> mapRules =
+      new ConcurrentHashMap<>();
 
-  private Map<Long, RuleQueryExecutor> mapRuleExecutor = new HashMap<>();
+  private ConcurrentHashMap<Long, RuleQueryExecutor> mapRuleExecutor =
+      new ConcurrentHashMap<>();
 
   // TODO: configurable
   public ExecutorScheduler execScheduler = new ExecutorScheduler(4);
 
+  @VisibleForTesting
   public RuleManager(SSMServer ssm, Configuration conf, DBAdapter dbAdapter) {
     this.ssm = ssm;
     this.conf = conf;
@@ -119,17 +121,13 @@ public class RuleManager implements ModuleSequenceProto {
   public void DeleteRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
     changeRuleState(ruleID, RuleState.DELETED);
+    markWorkExit(ruleID);
   }
 
   public void ActivateRule(long ruleID) throws IOException {
-    RuleInfo info = mapRules.get(ruleID);
-    if (info == null) {
-      throw new IOException("Rule with ID = " + ruleID + " not found");
-    }
-    RuleState state = info.getState();
     boolean changed = changeRuleState(ruleID, RuleState.ACTIVE);
-    if (changed && state == RuleState.DISABLED) {
-      info = mapRules.get(ruleID);
+    if (changed) {
+      RuleInfo info = mapRules.get(ruleID);
       TranslationContext ctx = new TranslationContext(info.getId(),
           info.getSubmitTime());
       submitRuleToScheduler(info, ctx);
@@ -139,6 +137,7 @@ public class RuleManager implements ModuleSequenceProto {
   public void DisableRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
     changeRuleState(ruleID, RuleState.DISABLED);
+    markWorkExit(ruleID);
   }
 
   public boolean changeRuleState(long ruleID, RuleState newState)
@@ -148,47 +147,57 @@ public class RuleManager implements ModuleSequenceProto {
     if (info == null) {
       throw new IOException("Rule with ID = " + ruleID + " not found");
     }
-    if (info.getState() == newState) {
-      return false;
-    }
+    synchronized (info) {
+      RuleState oldState = info.getState();
+      if (oldState == newState) {
+        return false;
+      }
 
-    RuleState state = info.getState();
-    switch (newState) {
-      case ACTIVE:
-        if (state == RuleState.DISABLED || state == RuleState.DRYRUN) {
+      switch (newState) {
+        case ACTIVE:
+          if (oldState == RuleState.DISABLED || oldState == RuleState.DRYRUN) {
+            ret = true;
+          }
+          break;
+        case DISABLED:
+          if (oldState == RuleState.ACTIVE || oldState == RuleState.DRYRUN) {
+            ret = true;
+          }
+          break;
+        case DELETED:
           ret = true;
-        }
-        break;
-      case DISABLED:
-        if (state == RuleState.ACTIVE || state == RuleState.DRYRUN) {
-          ret = true;
-        }
-        break;
-      case DELETED:
-        ret = true;
-        break;
-      default:
-        throw new IOException("Rule state transition " + state
-            + " -> " + newState + " is not supported");  // TODO: unsupported
-    }
+          break;
+        default:
+          throw new IOException("Rule state transition " + oldState
+              + " -> " + newState + " is not supported");  // TODO: unsupported
+      }
 
-    if (ret) {
-      info.setState(newState);
-      dbAdapter.updateRuleInfo(info.getId(), newState, 0, 0, 0);
+      if (ret) {
+        info.setState(newState);
+        dbAdapter.updateRuleInfo(info.getId(), newState, 0, 0, 0);
+      }
     }
     return true;
   }
 
   public RuleInfo getRuleInfo(long ruleID) throws IOException {
     RuleInfo info = mapRules.get(ruleID);
-    return info == null ? null : info.newCopy();
+    if (info == null) {
+      return null;
+    }
+
+    synchronized (info) {
+      return info.newCopy();
+    }
   }
 
   public List<RuleInfo> getRuleInfo() throws IOException {
     Collection<RuleInfo> infos = mapRules.values();
     List<RuleInfo> retInfos = new ArrayList<>();
     for (RuleInfo info : infos) {
-      retInfos.add(info.newCopy());
+      synchronized (info) {
+        retInfos.add(info.newCopy());
+      }
     }
     return retInfos;
   }
@@ -196,9 +205,11 @@ public class RuleManager implements ModuleSequenceProto {
   public void updateRuleInfo(long ruleId, RuleState rs, long lastCheckTime,
       long checkedCount, int commandsGen) {
     RuleInfo info = mapRules.get(ruleId);
-    info.updateRuleInfo(rs, lastCheckTime, checkedCount, commandsGen);
-    dbAdapter.updateRuleInfo(ruleId, rs, lastCheckTime,
-        checkedCount, commandsGen);
+    synchronized (info) {
+      info.updateRuleInfo(rs, lastCheckTime, checkedCount, commandsGen);
+      dbAdapter.updateRuleInfo(ruleId, rs, lastCheckTime,
+          checkedCount, commandsGen);
+    }
   }
 
   public void addNewCommands(List<CommandInfo> commands) {
@@ -208,6 +219,13 @@ public class RuleManager implements ModuleSequenceProto {
 
     CommandInfo[] cmds = commands.toArray(new CommandInfo[commands.size()]);
     dbAdapter.insertCommandsTable(cmds);
+  }
+
+  public void markWorkExit(long ruleId) {
+    RuleQueryExecutor executor = mapRuleExecutor.get(ruleId);
+    if (executor != null) {
+      executor.setExited();
+    }
   }
 
   public boolean isClosed() {

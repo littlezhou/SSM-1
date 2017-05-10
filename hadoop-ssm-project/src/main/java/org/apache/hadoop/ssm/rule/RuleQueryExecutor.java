@@ -176,12 +176,20 @@ public class RuleQueryExecutor implements Runnable {
 
   @Override
   public void run() {
+    if (exited) {
+      triggerException();
+    }
+
     long rid = ctx.getRuleId();
     try {
       long startCheckTime = System.currentTimeMillis();
+      if (ruleManager.isClosed()) {
+        triggerException();
+      }
+
       RuleInfo info = ruleManager.getRuleInfo(rid);
       RuleState state = info.getState();
-      if (state == RuleState.DELETED || state == RuleState.FINISHED
+      if (exited || state == RuleState.DELETED || state == RuleState.FINISHED
           || state == RuleState.DISABLED) {
         triggerException();
       }
@@ -241,5 +249,9 @@ public class RuleQueryExecutor implements Runnable {
 
   public boolean isExited() {
     return exited;
+  }
+
+  public void setExited() {
+    exited = true;
   }
 }
