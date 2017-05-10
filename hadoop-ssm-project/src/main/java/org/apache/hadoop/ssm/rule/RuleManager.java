@@ -120,33 +120,50 @@ public class RuleManager implements ModuleSequenceProto {
    */
   public void DeleteRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
-    changeRuleState(ruleID, RuleState.DELETED);
-    markWorkExit(ruleID);
+    RuleInfo info = mapRules.get(ruleID);
+    if (info == null) {
+      throw new IOException("Rule with ID = " + ruleID + " not found");
+    }
+    synchronized (info) {
+      boolean changed = changeRuleState(info, RuleState.DELETED);
+      if (changed) {
+        markWorkExit(ruleID);
+      }
+    }
   }
 
   public void ActivateRule(long ruleID) throws IOException {
-    boolean changed = changeRuleState(ruleID, RuleState.ACTIVE);
-    if (changed) {
-      RuleInfo info = mapRules.get(ruleID);
-      TranslationContext ctx = new TranslationContext(info.getId(),
-          info.getSubmitTime());
-      submitRuleToScheduler(info, ctx);
+    RuleInfo info = mapRules.get(ruleID);
+    if (info == null) {
+      throw new IOException("Rule with ID = " + ruleID + " not found");
+    }
+    synchronized (info) {
+      boolean changed = changeRuleState(info, RuleState.ACTIVE);
+      if (changed) {
+        TranslationContext ctx = new TranslationContext(info.getId(),
+            info.getSubmitTime());
+        submitRuleToScheduler(info, ctx);
+      }
     }
   }
 
   public void DisableRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
-    changeRuleState(ruleID, RuleState.DISABLED);
-    markWorkExit(ruleID);
-  }
-
-  public boolean changeRuleState(long ruleID, RuleState newState)
-      throws IOException {
-    boolean ret = false;
     RuleInfo info = mapRules.get(ruleID);
     if (info == null) {
       throw new IOException("Rule with ID = " + ruleID + " not found");
     }
+    synchronized (info) {
+      boolean changed = changeRuleState(info, RuleState.DISABLED);
+      if (changed) {
+        markWorkExit(ruleID);
+      }
+    }
+  }
+
+  public boolean changeRuleState(RuleInfo info, RuleState newState)
+      throws IOException {
+    boolean ret = false;
     synchronized (info) {
       RuleState oldState = info.getState();
       if (oldState == newState) {
@@ -226,6 +243,11 @@ public class RuleManager implements ModuleSequenceProto {
     if (executor != null) {
       executor.setExited();
     }
+  }
+
+  @VisibleForTesting
+  public RuleQueryExecutor getRuleQueryExecutor(long ruleId) {
+    return mapRuleExecutor.get(ruleId);
   }
 
   public boolean isClosed() {
