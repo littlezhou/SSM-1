@@ -31,7 +31,9 @@ import org.apache.hadoop.ssm.sql.ExecutionContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -47,8 +49,8 @@ public class RuleManager implements ModuleSequenceProto {
   private ConcurrentHashMap<Long, RuleInfo> mapRules =
       new ConcurrentHashMap<>();
 
-  private ConcurrentHashMap<Long, RuleQueryExecutor> mapRuleExecutor =
-      new ConcurrentHashMap<>();
+  //private ConcurrentHashMap<Long, RuleQueryExecutor> mapRuleExecutor = new ConcurrentHashMap<>();
+  private Map<Long, RuleQueryExecutor> mapRuleExecutor = new HashMap<>();
 
   // TODO: configurable
   public ExecutorScheduler execScheduler = new ExecutorScheduler(4);
@@ -226,6 +228,7 @@ public class RuleManager implements ModuleSequenceProto {
     if (executor != null) {
       executor.setExited();
     }
+    System.out.println(executor + " -> disabled");
   }
 
   @VisibleForTesting
@@ -270,6 +273,7 @@ public class RuleManager implements ModuleSequenceProto {
     ExecutionContext ctx = new ExecutionContext();
     ctx.setProperty(ExecutionContext.RULE_ID, info.getId());
     RuleQueryExecutor qe = new RuleQueryExecutor(this, ctx, tr, dbAdapter);
+    System.out.println(qe + " -> created");
     mapRuleExecutor.put(ruleId, qe);
     execScheduler.addPeriodicityTask(qe);
   }

@@ -211,6 +211,7 @@ public class RuleQueryExecutor implements Runnable {
       long endProcessTime = System.currentTimeMillis();
 
       ruleManager.updateRuleInfo(rid, null, timeNow(), 1, commands.size());
+      System.out.println(this + " -> " + System.currentTimeMillis());
 
       if (endProcessTime - startCheckTime > 3000) {
         // TODO: log an issue of slow processing
