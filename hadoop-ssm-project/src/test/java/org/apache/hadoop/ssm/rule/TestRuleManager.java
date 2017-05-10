@@ -327,10 +327,6 @@ public class TestRuleManager {
 
     RuleInfo res = ruleManager.getRuleInfo(rid);
     System.out.println(res);
-    List<CommandInfo> cmds =
-        dbAdapter.getCommandsTableItem(">= 0", null, null);
-    System.out.println("NumCmds = " + cmds.size());
-    Assert.assertTrue(cmds.size() == res.getNumCmdsGen());
     Thread.sleep(5000);
     RuleInfo after = ruleManager.getRuleInfo(rid);
     System.out.println(after);
