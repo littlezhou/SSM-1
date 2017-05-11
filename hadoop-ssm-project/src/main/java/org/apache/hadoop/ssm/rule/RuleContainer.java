@@ -48,19 +48,19 @@ public class RuleContainer {
     return ruleInfo;
   }
 
-  public void DisableRule(DBAdapter dbAdapter) throws IOException {
+  public void DisableRule() throws IOException {
     lockWrite();
     try {
-      changeRuleState(dbAdapter, RuleState.DISABLED);
+      changeRuleState(RuleState.DISABLED);
     } finally {
       unlockWrite();
     }
   }
 
-  public void DeleteRule(DBAdapter dbAdapter) throws IOException {
+  public void DeleteRule() throws IOException {
     lockWrite();
     try {
-      changeRuleState(dbAdapter, RuleState.DELETED);
+      changeRuleState(RuleState.DELETED);
     } finally {
       unlockWrite();
     }
@@ -70,19 +70,29 @@ public class RuleContainer {
       throws IOException {
     lockWrite();
     try {
-      changeRuleState(ruleManager.getDbAdapter(), RuleState.ACTIVE);
+      changeRuleState(RuleState.ACTIVE);
       return doLaunchExecutor(ruleManager);
     } finally {
       unlockWrite();
     }
   }
 
-  public boolean updateRuleInfo(DBAdapter dbAdapter, RuleState rs, long lastCheckTime,
+  public RuleQueryExecutor launchExecutor(RuleManager ruleManager)
+      throws IOException {
+    lockWrite();
+    try {
+      return doLaunchExecutor(ruleManager);
+    } finally {
+      unlockWrite();
+    }
+  }
+
+  public boolean updateRuleInfo(RuleState rs, long lastCheckTime,
       long checkedCount, int commandsGen) throws IOException {
     lockWrite();
     try {
       boolean ret = true;
-      changeRuleState(dbAdapter, rs, false);
+      changeRuleState(rs, false);
       ruleInfo.updateRuleInfo(rs, lastCheckTime, checkedCount, commandsGen);
       if (dbAdapter != null) {
         ret = dbAdapter.updateRuleInfo(ruleInfo.getId(),
@@ -108,9 +118,9 @@ public class RuleContainer {
           ruleInfo.getSubmitTime());
       TranslateResult tr = executor != null ? executor.getTranslateResult() :
           ruleManager.doCheckRule(ruleInfo.getRuleText(), transCtx);
-      RuleQueryExecutor qe = new RuleQueryExecutor(
+      executor = new RuleQueryExecutor(
           ruleManager, ctx, tr, ruleManager.getDbAdapter());
-      return qe;
+      return executor;
     }
     return null;
   }
@@ -118,16 +128,16 @@ public class RuleContainer {
   private void markWorkExit() {
     if (executor != null) {
       executor.setExited();
+      //System.out.println(executor + " -> disabled");
     }
-    System.out.println(executor + " -> disabled");
   }
 
-  private boolean changeRuleState(DBAdapter dbAdapter, RuleState newState)
+  private boolean changeRuleState(RuleState newState)
       throws IOException {
-    return changeRuleState(dbAdapter, newState, true);
+    return changeRuleState(newState, true);
   }
 
-  private boolean changeRuleState(DBAdapter dbAdapter, RuleState newState,
+  private boolean changeRuleState(RuleState newState,
       boolean updateDb) throws IOException {
     RuleState oldState = ruleInfo.getState();
     if (newState == null || oldState == newState) {
@@ -163,25 +173,35 @@ public class RuleContainer {
           dbAdapter.updateRuleInfo(ruleInfo.getId(), newState, 0, 0, 0);
         }
         return true;
+
+      case FINISHED:
+        if (oldState == RuleState.ACTIVE || oldState == RuleState.DRYRUN) {
+          ruleInfo.setState(newState);
+          if (updateDb && dbAdapter != null) {
+            dbAdapter.updateRuleInfo(ruleInfo.getId(), newState, 0, 0, 0);
+          }
+          return true;
+        }
+        break;
     }
 
     throw new IOException("Rule state transition " + oldState
         + " -> " + newState + " is not supported");  // TODO: unsupported
   }
 
-  public void lockWrite() {
+  private void lockWrite() {
     rwl.writeLock().lock();
   }
 
-  public void unlockWrite() {
+  private void unlockWrite() {
     rwl.writeLock().unlock();
   }
 
-  public void lockRead() {
+  private void lockRead() {
     rwl.readLock().lock();
   }
 
-  public void unlockRead() {
+  private void unlockRead() {
     rwl.readLock().unlock();
   }
 }

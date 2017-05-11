@@ -26,14 +26,11 @@ import org.apache.hadoop.ssm.rule.parser.TranslateResult;
 import org.apache.hadoop.ssm.rule.parser.TranslationContext;
 import org.apache.hadoop.ssm.sql.CommandInfo;
 import org.apache.hadoop.ssm.sql.DBAdapter;
-import org.apache.hadoop.ssm.sql.ExecutionContext;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -88,10 +85,10 @@ public class RuleManager implements ModuleSequenceProto {
       throw new IOException("Create rule failed");
     }
 
-    RuleContainer container = new RuleContainer(ruleInfo);
+    RuleContainer container = new RuleContainer(ruleInfo, dbAdapter);
     mapRules.put(ruleInfo.getId(), container);
 
-    submitRuleToScheduler(container.ActivateRule(this));
+    submitRuleToScheduler(container.launchExecutor(this));
 
     return ruleInfo.getId();
   }
@@ -123,7 +120,7 @@ public class RuleManager implements ModuleSequenceProto {
   public void DeleteRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
     RuleContainer container = checkIfExists(ruleID);
-    container.DeleteRule(dbAdapter);
+    container.DeleteRule();
   }
 
   public void ActivateRule(long ruleID) throws IOException {
@@ -134,7 +131,7 @@ public class RuleManager implements ModuleSequenceProto {
   public void DisableRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
     RuleContainer container = checkIfExists(ruleID);
-    container.DisableRule(dbAdapter);
+    container.DisableRule();
   }
 
   private RuleContainer checkIfExists(long ruleID) throws IOException {
@@ -162,11 +159,7 @@ public class RuleManager implements ModuleSequenceProto {
   public void updateRuleInfo(long ruleId, RuleState rs, long lastCheckTime,
       long checkedCount, int commandsGen) throws IOException {
     RuleContainer container = checkIfExists(ruleId);
-    synchronized (info) {
-      info.updateRuleInfo(rs, lastCheckTime, checkedCount, commandsGen);
-      dbAdapter.updateRuleInfo(ruleId, rs, lastCheckTime,
-          checkedCount, commandsGen);
-    }
+    container.updateRuleInfo(rs, lastCheckTime, checkedCount, commandsGen);
   }
 
   public void addNewCommands(List<CommandInfo> commands) {
@@ -193,7 +186,7 @@ public class RuleManager implements ModuleSequenceProto {
     // Load rules table
     List<RuleInfo> rules = dbAdapter.getRuleInfo();
     for (RuleInfo rule : rules) {
-      mapRules.put(rule.getId(), new RuleContainer(rule));
+      mapRules.put(rule.getId(), new RuleContainer(rule, dbAdapter));
     }
     return true;
   }
@@ -214,15 +207,10 @@ public class RuleManager implements ModuleSequenceProto {
 
     // Submit runnable rules to scheduler
     for (RuleContainer container : mapRules.values()) {
-      container.lockWrite();
-      try {
         RuleInfo rule = container.getRuleInfoRef();
-        if (rule.getState() == RuleState.ACTIVE
-            || rule.getState() == RuleState.DRYRUN) {
-          submitRuleToScheduler(container.ActivateRule(this));
-        }
-      } finally {
-        container.unlockWrite();
+      if (rule.getState() == RuleState.ACTIVE
+          || rule.getState() == RuleState.DRYRUN) {
+        submitRuleToScheduler(container.launchExecutor(this));
       }
     }
     return true;

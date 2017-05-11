@@ -18,7 +18,6 @@
 package org.apache.hadoop.ssm.rule;
 
 import org.apache.hadoop.ssm.CommandState;
-import org.apache.hadoop.ssm.actions.ActionType;
 import org.apache.hadoop.ssm.rule.parser.TimeBasedScheduleInfo;
 import org.apache.hadoop.ssm.rule.parser.TranslateResult;
 import org.apache.hadoop.ssm.sql.CommandInfo;
@@ -31,7 +30,6 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -213,7 +211,7 @@ public class RuleQueryExecutor implements Runnable {
       }
       ruleManager.addNewCommands(commands);
       ruleManager.updateRuleInfo(rid, null, timeNow(), 1, commands.size());
-      System.out.println(this + " -> " + System.currentTimeMillis());
+      //System.out.println(this + " -> " + System.currentTimeMillis());
       long endProcessTime = System.currentTimeMillis();
 
       if (endProcessTime - startCheckTime > 3000) {

@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.ssm.rule;
 
-import org.apache.hadoop.ssm.sql.CommandInfo;
 import org.apache.hadoop.ssm.sql.DBAdapter;
 import org.apache.hadoop.ssm.sql.FileStatusInternal;
 import org.apache.hadoop.ssm.sql.TestDBUtil;
@@ -238,7 +237,7 @@ public class TestRuleManager {
         new Thread(new RuleInfoUpdater(rid, 3)),
         new Thread(new RuleInfoUpdater(rid, 7)),
         new Thread(new RuleInfoUpdater(rid, 11)),
-        new Thread(new RuleInfoUpdater(rid, 17)),} ;
+        new Thread(new RuleInfoUpdater(rid, 17))} ;
 
     for (Thread t : threads) {
       t.start();
@@ -275,9 +274,11 @@ public class TestRuleManager {
           lastCheckTime = System.currentTimeMillis();
           checkedCount = info.getNumChecked();
           commandsGen = (int)info.getNumCmdsGen();
-          System.out.println("" + index + ": " + lastCheckTime + " " + checkedCount + " " + commandsGen);
+          //System.out.println("" + index + ": " + lastCheckTime + " "
+          // + checkedCount + " " + commandsGen);
           Assert.assertTrue(checkedCount == commandsGen);
-          ruleManager.updateRuleInfo(ruleid, null, lastCheckTime, index, index);
+          ruleManager.updateRuleInfo(ruleid, null,
+              lastCheckTime, index, index);
         }
       } catch (Exception e) {
         Assert.fail("Can not have exception here.");
@@ -299,7 +300,6 @@ public class TestRuleManager {
 
     dbAdapter.insertFiles(files);
     long rid = ruleManager.submitRule(rule, RuleState.ACTIVE);
-    //ruleManager.updateRuleInfo(rid, null, now, 1, 1);
 
     long start = System.currentTimeMillis();
 
