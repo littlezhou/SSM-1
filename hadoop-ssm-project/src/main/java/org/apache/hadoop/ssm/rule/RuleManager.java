@@ -265,13 +265,19 @@ public class RuleManager implements ModuleSequenceProto {
   private void submitRuleToScheduler(RuleInfo info, TranslateResult tr)
       throws IOException {
     long ruleId = info.getId();
-    if (mapRuleExecutor.containsKey(ruleId)) {
-      if (!mapRuleExecutor.get(ruleId).isExited()) {
-        return;
+    synchronized (info) {
+      if (mapRuleExecutor.containsKey(ruleId)) {
+        if (!mapRuleExecutor.get(ruleId).isExited()) {
+          return;
+        }
       }
+      createNewExecutorToScheduler(ruleId, tr);
     }
+  }
+
+  private void createNewExecutorToScheduler(long ruleId, TranslateResult tr) {
     ExecutionContext ctx = new ExecutionContext();
-    ctx.setProperty(ExecutionContext.RULE_ID, info.getId());
+    ctx.setProperty(ExecutionContext.RULE_ID, ruleId);
     RuleQueryExecutor qe = new RuleQueryExecutor(this, ctx, tr, dbAdapter);
     System.out.println(qe + " -> created");
     mapRuleExecutor.put(ruleId, qe);

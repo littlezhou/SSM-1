@@ -207,11 +207,13 @@ public class RuleQueryExecutor implements Runnable {
       List<String> files = executeFileRuleQuery();
       long endCheckTime = System.currentTimeMillis();
       List<CommandInfo> commands = generateCommands(files, info);
+      if (exited) {
+        triggerException();
+      }
       ruleManager.addNewCommands(commands);
-      long endProcessTime = System.currentTimeMillis();
-
       ruleManager.updateRuleInfo(rid, null, timeNow(), 1, commands.size());
       System.out.println(this + " -> " + System.currentTimeMillis());
+      long endProcessTime = System.currentTimeMillis();
 
       if (endProcessTime - startCheckTime > 3000) {
         // TODO: log an issue of slow processing

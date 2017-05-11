@@ -223,10 +223,6 @@ public class TestRuleManager {
     }
   }
 
-  private void prepareForMultiThreadTest() {
-
-  }
-
   @Test
   public void testMultiThreadUpdate() throws Exception {
     String rule = "file: every 1s \n | length > 10 | cachefile";
@@ -331,7 +327,7 @@ public class TestRuleManager {
     RuleInfo after = ruleManager.getRuleInfo(rid);
     System.out.println(after);
     if (res.getState() == RuleState.ACTIVE) {
-      Assert.assertTrue(after.getNumCmdsGen() > res.getNumCmdsGen());
+      Assert.assertTrue(after.getNumCmdsGen() - res.getNumCmdsGen() <= 6);
     } else {
       Assert.assertTrue(after.getNumCmdsGen() == res.getNumCmdsGen());
     }
