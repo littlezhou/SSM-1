@@ -24,6 +24,8 @@ import org.apache.hadoop.ssm.protocol.SSMServiceStates;
 import org.apache.hadoop.ssm.rule.RuleInfo;
 import org.apache.hadoop.ssm.rule.RuleState;
 
+import java.io.IOException;
+
 public class ClientSSMProtocolClientSideTranslatorPB implements ClientSSMProtocol {
   final private ClientSSMProtocolPB rpcProxy;
 
@@ -78,5 +80,9 @@ public class ClientSSMProtocolClientSideTranslatorPB implements ClientSSMProtoco
         .setNumCmdsGen(r.getCountConditionFulfilled())
         .setState(ruleState);
     return builder.build();
+  }
+
+  @Override
+  public long submitRule(String rule, RuleState initState) throws IOException {
   }
 }

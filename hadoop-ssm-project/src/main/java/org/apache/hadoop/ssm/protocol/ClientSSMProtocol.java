@@ -18,9 +18,14 @@
 package org.apache.hadoop.ssm.protocol;
 
 import org.apache.hadoop.ssm.rule.RuleInfo;
+import org.apache.hadoop.ssm.rule.RuleState;
+
+import java.io.IOException;
 
 public interface ClientSSMProtocol {
   public SSMServiceStates getServiceStatus();
 
   public RuleInfo getRuleInfo(long id);
+
+  long submitRule(String rule, RuleState initState) throws IOException;
 }
