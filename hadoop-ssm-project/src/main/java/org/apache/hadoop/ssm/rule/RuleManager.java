@@ -46,11 +46,8 @@ public class RuleManager implements ModuleSequenceProto {
   private DBAdapter dbAdapter;
   private boolean isClosed = false;
 
-  private ConcurrentHashMap<Long, RuleInfo> mapRules =
+  private ConcurrentHashMap<Long, RuleContainer> mapRules =
       new ConcurrentHashMap<>();
-
-  //private ConcurrentHashMap<Long, RuleQueryExecutor> mapRuleExecutor = new ConcurrentHashMap<>();
-  private Map<Long, RuleQueryExecutor> mapRuleExecutor = new HashMap<>();
 
   // TODO: configurable
   public ExecutorScheduler execScheduler = new ExecutorScheduler(4);
@@ -91,16 +88,15 @@ public class RuleManager implements ModuleSequenceProto {
       throw new IOException("Create rule failed");
     }
 
-    mapRules.put(ruleInfo.getId(), ruleInfo);
+    RuleContainer container = new RuleContainer(ruleInfo);
+    mapRules.put(ruleInfo.getId(), container);
 
-    if (initState == RuleState.ACTIVE || initState == RuleState.DRYRUN) {
-      submitRuleToScheduler(ruleInfo, tr);
-    }
+    submitRuleToScheduler(container.ActivateRule(this));
 
     return ruleInfo.getId();
   }
 
-  private TranslateResult doCheckRule(String rule, TranslationContext ctx)
+  public TranslateResult doCheckRule(String rule, TranslationContext ctx)
       throws IOException {
     RuleStringParser parser = new RuleStringParser(rule, ctx);
     return parser.translate();
@@ -108,6 +104,10 @@ public class RuleManager implements ModuleSequenceProto {
 
   public void checkRule(String rule) throws IOException {
     doCheckRule(rule, null);
+  }
+
+  public DBAdapter getDbAdapter() {
+    return dbAdapter;
   }
 
   /**
@@ -122,91 +122,46 @@ public class RuleManager implements ModuleSequenceProto {
    */
   public void DeleteRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
-    changeRuleState(ruleID, RuleState.DELETED);
-    markWorkExit(ruleID);
+    RuleContainer container = checkIfExists(ruleID);
+    container.DeleteRule(dbAdapter);
   }
 
   public void ActivateRule(long ruleID) throws IOException {
-    boolean changed = changeRuleState(ruleID, RuleState.ACTIVE);
-    if (changed) {
-      RuleInfo info = mapRules.get(ruleID);
-      TranslationContext ctx = new TranslationContext(info.getId(),
-          info.getSubmitTime());
-      submitRuleToScheduler(info, ctx);
-    }
+    RuleContainer container = checkIfExists(ruleID);
+    submitRuleToScheduler(container.ActivateRule(this));
   }
 
   public void DisableRule(long ruleID, boolean dropPendingCommands)
       throws IOException {
-    changeRuleState(ruleID, RuleState.DISABLED);
-    markWorkExit(ruleID);
+    RuleContainer container = checkIfExists(ruleID);
+    container.DisableRule(dbAdapter);
   }
 
-  public boolean changeRuleState(long ruleID, RuleState newState)
-      throws IOException {
-    boolean ret = false;
-    RuleInfo info = mapRules.get(ruleID);
-    if (info == null) {
+  private RuleContainer checkIfExists(long ruleID) throws IOException {
+    RuleContainer container = mapRules.get(ruleID);
+    if (container == null) {
       throw new IOException("Rule with ID = " + ruleID + " not found");
     }
-    synchronized (info) {
-      RuleState oldState = info.getState();
-      if (oldState == newState) {
-        return false;
-      }
-
-      switch (newState) {
-        case ACTIVE:
-          if (oldState == RuleState.DISABLED || oldState == RuleState.DRYRUN) {
-            ret = true;
-          }
-          break;
-        case DISABLED:
-          if (oldState == RuleState.ACTIVE || oldState == RuleState.DRYRUN) {
-            ret = true;
-          }
-          break;
-        case DELETED:
-          ret = true;
-          break;
-        default:
-          throw new IOException("Rule state transition " + oldState
-              + " -> " + newState + " is not supported");  // TODO: unsupported
-      }
-
-      if (ret) {
-        info.setState(newState);
-        dbAdapter.updateRuleInfo(info.getId(), newState, 0, 0, 0);
-      }
-    }
-    return true;
+    return container;
   }
 
   public RuleInfo getRuleInfo(long ruleID) throws IOException {
-    RuleInfo info = mapRules.get(ruleID);
-    if (info == null) {
-      return null;
-    }
-
-    synchronized (info) {
-      return info.newCopy();
-    }
+    RuleContainer container = checkIfExists(ruleID);
+    return container.getRuleInfo();
   }
 
   public List<RuleInfo> getRuleInfo() throws IOException {
-    Collection<RuleInfo> infos = mapRules.values();
+    Collection<RuleContainer> containers = mapRules.values();
     List<RuleInfo> retInfos = new ArrayList<>();
-    for (RuleInfo info : infos) {
-      synchronized (info) {
-        retInfos.add(info.newCopy());
-      }
+    for (RuleContainer container : containers) {
+      retInfos.add(container.getRuleInfo());
     }
     return retInfos;
   }
 
   public void updateRuleInfo(long ruleId, RuleState rs, long lastCheckTime,
-      long checkedCount, int commandsGen) {
-    RuleInfo info = mapRules.get(ruleId);
+      long checkedCount, int commandsGen) throws IOException {
+    RuleContainer container = checkIfExists(ruleId);
     synchronized (info) {
       info.updateRuleInfo(rs, lastCheckTime, checkedCount, commandsGen);
       dbAdapter.updateRuleInfo(ruleId, rs, lastCheckTime,
@@ -221,19 +176,6 @@ public class RuleManager implements ModuleSequenceProto {
 
     CommandInfo[] cmds = commands.toArray(new CommandInfo[commands.size()]);
     dbAdapter.insertCommandsTable(cmds);
-  }
-
-  public void markWorkExit(long ruleId) {
-    RuleQueryExecutor executor = mapRuleExecutor.get(ruleId);
-    if (executor != null) {
-      executor.setExited();
-    }
-    System.out.println(executor + " -> disabled");
-  }
-
-  @VisibleForTesting
-  public RuleQueryExecutor getRuleQueryExecutor(long ruleId) {
-    return mapRuleExecutor.get(ruleId);
   }
 
   public boolean isClosed() {
@@ -251,37 +193,17 @@ public class RuleManager implements ModuleSequenceProto {
     // Load rules table
     List<RuleInfo> rules = dbAdapter.getRuleInfo();
     for (RuleInfo rule : rules) {
-      mapRules.put(rule.getId(), rule);
+      mapRules.put(rule.getId(), new RuleContainer(rule));
     }
     return true;
   }
 
-  private void submitRuleToScheduler(RuleInfo info,
-      TranslationContext transCtx) throws IOException {
-    TranslateResult tr = doCheckRule(info.getRuleText(), transCtx);
-    submitRuleToScheduler(info, tr);
-  }
-
-  private void submitRuleToScheduler(RuleInfo info, TranslateResult tr)
+  private void submitRuleToScheduler(RuleQueryExecutor executor)
       throws IOException {
-    long ruleId = info.getId();
-    synchronized (info) {
-      if (mapRuleExecutor.containsKey(ruleId)) {
-        if (!mapRuleExecutor.get(ruleId).isExited()) {
-          return;
-        }
-      }
-      createNewExecutorToScheduler(ruleId, tr);
+    if (executor == null || executor.isExited()) {
+      return;
     }
-  }
-
-  private void createNewExecutorToScheduler(long ruleId, TranslateResult tr) {
-    ExecutionContext ctx = new ExecutionContext();
-    ctx.setProperty(ExecutionContext.RULE_ID, ruleId);
-    RuleQueryExecutor qe = new RuleQueryExecutor(this, ctx, tr, dbAdapter);
-    System.out.println(qe + " -> created");
-    mapRuleExecutor.put(ruleId, qe);
-    execScheduler.addPeriodicityTask(qe);
+    execScheduler.addPeriodicityTask(executor);
   }
 
   /**
@@ -291,12 +213,16 @@ public class RuleManager implements ModuleSequenceProto {
     // after StateManager be ready
 
     // Submit runnable rules to scheduler
-    for (RuleInfo rule : mapRules.values()) {
-      if (rule.getState() == RuleState.ACTIVE
-          || rule.getState() == RuleState.DRYRUN) {
-        TranslationContext ctx = new TranslationContext(rule.getId(),
-            rule.getSubmitTime());
-        submitRuleToScheduler(rule, ctx);
+    for (RuleContainer container : mapRules.values()) {
+      container.lockWrite();
+      try {
+        RuleInfo rule = container.getRuleInfoRef();
+        if (rule.getState() == RuleState.ACTIVE
+            || rule.getState() == RuleState.DRYRUN) {
+          submitRuleToScheduler(container.ActivateRule(this));
+        }
+      } finally {
+        container.unlockWrite();
       }
     }
     return true;

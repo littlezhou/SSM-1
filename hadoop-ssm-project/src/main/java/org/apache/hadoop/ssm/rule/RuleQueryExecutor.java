@@ -46,6 +46,7 @@ public class RuleQueryExecutor implements Runnable {
   private ExecutionContext ctx;
   private DBAdapter adapter; // TODO: abstract to prevent direct call
   private volatile boolean exited = false;
+  private long exitTime;
 
   private static Pattern varPattern = Pattern.compile(
       "\\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
@@ -177,21 +178,21 @@ public class RuleQueryExecutor implements Runnable {
   @Override
   public void run() {
     if (exited) {
-      triggerException();
+      exitSchedule();
     }
 
     long rid = ctx.getRuleId();
     try {
       long startCheckTime = System.currentTimeMillis();
       if (ruleManager.isClosed()) {
-        triggerException();
+        exitSchedule();
       }
 
       RuleInfo info = ruleManager.getRuleInfo(rid);
       RuleState state = info.getState();
       if (exited || state == RuleState.DELETED || state == RuleState.FINISHED
           || state == RuleState.DISABLED) {
-        triggerException();
+        exitSchedule();
       }
       TimeBasedScheduleInfo scheduleInfo = tr.getTbScheduleInfo();
 
@@ -200,7 +201,7 @@ public class RuleQueryExecutor implements Runnable {
           && startCheckTime - scheduleInfo.getEndTime() > 0) {
         // TODO: special for scheduleInfo.isOneShot()
         ruleManager.updateRuleInfo(rid, RuleState.FINISHED, timeNow(), 0, 0);
-        triggerException();
+        exitSchedule();
       }
 
 
@@ -208,7 +209,7 @@ public class RuleQueryExecutor implements Runnable {
       long endCheckTime = System.currentTimeMillis();
       List<CommandInfo> commands = generateCommands(files, info);
       if (exited) {
-        triggerException();
+        exitSchedule();
       }
       ruleManager.addNewCommands(commands);
       ruleManager.updateRuleInfo(rid, null, timeNow(), 1, commands.size());
@@ -225,8 +226,9 @@ public class RuleQueryExecutor implements Runnable {
     }
   }
 
-  private void triggerException() {
+  private void exitSchedule() {
     // throw an exception
+    exitTime = System.currentTimeMillis();
     exited = true;
     String[] temp = new String[1];
     temp[1] += "The exception is created deliberately";
@@ -255,6 +257,11 @@ public class RuleQueryExecutor implements Runnable {
   }
 
   public void setExited() {
+    exitTime = System.currentTimeMillis();
     exited = true;
+  }
+
+  public long getExitTime() {
+    return exitTime;
   }
 }
