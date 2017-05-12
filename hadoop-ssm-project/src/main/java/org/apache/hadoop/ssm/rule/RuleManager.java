@@ -221,8 +221,11 @@ public class RuleManager implements ModuleSequenceProto {
    */
   public void stop() throws IOException {
     isClosed = true;
-    if (execScheduler != null) {
-      execScheduler.shutdown();
+
+    // wait rule check threads to exit
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException e) {
     }
   }
 
@@ -230,5 +233,8 @@ public class RuleManager implements ModuleSequenceProto {
    * Waiting for threads to exit.
    */
   public void join() throws IOException {
+    if (execScheduler != null) {
+      execScheduler.shutdown();
+    }
   }
 }
