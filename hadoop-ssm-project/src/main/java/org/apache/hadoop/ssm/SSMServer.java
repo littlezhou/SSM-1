@@ -106,6 +106,9 @@ public class SSMServer {
    */
   public static SSMServer createSSM(String[] args, Configuration conf)
       throws Exception {
+    if (args == null) {
+      args = new String[0];
+    }
     StringUtils.startupShutdownMessage(SSMServer.class, args, LOG);
     if (args != null) {
       if (parseHelpArgument(args, USAGE, System.out, true)) {

@@ -37,7 +37,6 @@ import org.apache.hadoop.tools.TableListing;
 import org.apache.hadoop.tracing.TraceUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 import org.apache.htrace.core.TraceScope;
 import org.apache.htrace.core.Tracer;
 
@@ -172,7 +171,7 @@ public class SSMShell extends Configured implements Tool {
   private void printInfo(PrintStream out, String cmd, boolean showHelp) {
     if (cmd != null) {
       // display help or usage for one command
-      Command instance = commandFactory.getInstance("-" + cmd);
+      Command instance = commandFactory.getInstance(cmd);
       if (instance == null) {
         throw new UnknownCommandException(cmd);
       }
@@ -202,7 +201,7 @@ public class SSMShell extends Configured implements Tool {
         }
       }
       out.println();
-      ToolRunner.printGenericCommandUsage(out);
+      //ToolRunner.printGenericCommandUsage(out);
     }
   }
 
@@ -254,9 +253,6 @@ public class SSMShell extends Configured implements Tool {
         .wrapWidth(MAX_LINE_WIDTH).build();
   }
 
-  /**
-   * run
-   */
   @Override
   public int run(String argv[]) throws Exception {
     init();
@@ -341,11 +337,11 @@ public class SSMShell extends Configured implements Tool {
     shell.setConf(conf);
     int res;
     try {
-      res = ToolRunner.run(shell, argv);
+      res = shell.run(argv);
     } finally {
       shell.close();
     }
-    //System.exit(res);
+    System.exit(res);
   }
 
   // TODO: this should be abstract in a base class
