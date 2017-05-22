@@ -22,6 +22,7 @@
     <scala.version>2.11.8</scala.version>
     <protoc.path>${env.HADOOP_PROTOC_PATH}</protoc.path>
     <dbunitVersion>2.5.3</dbunitVersion>
+    <buildtools.dir>${basedir}/build-tools</buildtools.dir>
   </properties>
 
   <dependencyManagement>
@@ -349,6 +350,28 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <configLocation>${buildtools.dir}/smart-checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <encoding>UTF-8</encoding>
+          <failOnViolation>true</failOnViolation>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 </project>
