@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.smart.sql;
 
+import org.apache.curator.shaded.com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.fs.XAttr;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.XAttrHelper;
@@ -29,6 +30,7 @@ import org.apache.hadoop.smart.rule.RuleInfo;
 import org.apache.hadoop.smart.rule.RuleState;
 import org.apache.hadoop.smart.sql.tables.AccessCountTable;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -46,7 +48,8 @@ import java.util.stream.Collectors;
  */
 public class DBAdapter {
 
-  private Connection conn;
+  private Connection connX = null;
+  private DBPool pool = null;
 
   private Map<Integer, String> mapOwnerIdName = null;
   private Map<Integer, String> mapGroupIdName = null;
@@ -54,8 +57,22 @@ public class DBAdapter {
   private Map<Integer, ErasureCodingPolicy> mapECPolicy = null;
   private Map<String, StorageCapacity> mapStorageCapacity = null;
 
+  @VisibleForTesting
   public DBAdapter(Connection conn) {
     this.conn = conn;
+  }
+
+  public DBAdapter(DBPool pool) throws IOException {
+  }
+
+  public Connection getConnection() throws SQLException {
+    return pool != null ? pool.getConnection() : conn;
+  }
+
+  private void closeConnection(Connection conn) throws SQLException {
+    if (pool != null) {
+      pool.closeConnection(conn);
+    }
   }
 
   public Map<Long, Integer> getAccessCount(long startTime, long endTime,
@@ -107,18 +124,6 @@ public class DBAdapter {
   }
 
   /**
-   * Store access count data for the given time interval.
-   *
-   * @param startTime
-   * @param endTime
-   * @param fids
-   * @param counts
-   */
-  public synchronized void insertAccessCountData(long startTime, long endTime,
-      long[] fids, int[] counts) {
-  }
-
-  /**
    * Store files info into database.
    *
    * @param files
@@ -126,7 +131,7 @@ public class DBAdapter {
   public synchronized void insertFiles(FileStatusInternal[] files) {
     updateCache();
     try {
-      Statement s = conn.createStatement();
+      Statement s = getConnection().createStatement();
       for (int i = 0; i < files.length; i++) {
         String sql = "INSERT INTO `files` (path, fid, length, "
             + "block_replication,"
