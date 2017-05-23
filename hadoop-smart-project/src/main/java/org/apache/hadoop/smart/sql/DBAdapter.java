@@ -737,7 +737,7 @@ public class DBAdapter {
           .append(commandsGen).append(",");
     }
     int idx = sb.lastIndexOf(",");
-    sb.replace(idx, idx, "");
+    sb.replace(idx, idx + 1, "");
     sb.append(" WHERE id = ").append(ruleId).append(";");
 
     QueryHelper queryHelper = new QueryHelper(sb.toString());
@@ -963,6 +963,17 @@ public class DBAdapter {
       return XAttrHelper.buildXAttrMap(list);
     } finally {
       queryHelper.close();
+    }
+  }
+
+  @VisibleForTesting
+  public ResultSet executeQuery(String sqlQuery) throws SQLException {
+    Connection conn = getConnection();
+    try {
+      Statement s = conn.createStatement();
+      return s.executeQuery(sqlQuery);
+    } finally {
+      closeConnection(conn);
     }
   }
 }
