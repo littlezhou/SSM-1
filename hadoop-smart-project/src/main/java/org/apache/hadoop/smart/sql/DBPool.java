@@ -25,4 +25,6 @@ public interface DBPool {
   Connection getConnection() throws SQLException;
 
   void closeConnection(Connection conn) throws SQLException;
+
+  void close();
 }

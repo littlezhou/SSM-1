@@ -38,4 +38,8 @@ public class DruidPool implements DBPool {
   public void closeConnection(Connection conn) throws SQLException {
     conn.close();
   }
+
+  public void close() {
+    ds.close();
+  }
 }

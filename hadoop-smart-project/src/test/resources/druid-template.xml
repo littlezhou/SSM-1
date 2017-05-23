@@ -2,8 +2,7 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
     <comment>sqlite</comment>
-    <entry key="driverClassName">org.sqlite.JDBC</entry>
-    <entry key="url">jdbc:sqlite:C:\Users\hookapi\IdeaProjects\tests\dboper-proxool\src\main\resources\data-schema.db</entry>
+    <entry key="url">jdbc:sqlite:sqlit-db-path</entry>
     <entry key="username">""</entry>
     <entry key="password">""</entry>
 
