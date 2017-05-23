@@ -23,7 +23,7 @@ import org.apache.hadoop.smart.rule.RuleState;
 import java.io.IOException;
 import java.util.List;
 
-public interface ClientSSMProtocol {
+public interface ClientSmartProtocol {
 
   SmartServiceState getServiceState() throws IOException;
 

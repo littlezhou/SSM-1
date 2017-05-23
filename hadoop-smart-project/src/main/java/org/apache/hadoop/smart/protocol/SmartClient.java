@@ -30,10 +30,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
-public class SmartClient implements java.io.Closeable, ClientSSMProtocol {
+public class SmartClient implements java.io.Closeable, ClientSmartProtocol {
   final static long VERSION = 1;
   Configuration conf;
-  ClientSSMProtocol ssm;
+  ClientSmartProtocol ssm;
   volatile boolean clientRunning = true;
 
   public SmartClient(Configuration conf)
@@ -48,7 +48,7 @@ public class SmartClient implements java.io.Closeable, ClientSSMProtocol {
         ProtobufRpcEngine.class);
     ClientSmartProtocolPB proxy = RPC.getProxy(
         ClientSmartProtocolPB.class, VERSION, address, conf);
-    ClientSSMProtocol clientSSMProtocol =
+    ClientSmartProtocol clientSSMProtocol =
         new ClientSmartProtocolClientSideTranslatorPB(proxy);
     this.ssm = clientSSMProtocol;
   }

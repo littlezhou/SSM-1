@@ -72,7 +72,14 @@ public class AccessEventAggregator {
   private AccessCountTable createTable() {
     AccessCountTable table = new AccessCountTable(currentWindow.start, currentWindow.end);
     String createTable = AccessCountTable.createTableSQL(table.getTableName());
-    Map<String, Long> pathToIDs = this.adapter.getFileIDs(getPaths(eventBuffer));
+    Map<String, Long> pathToIDs = null;
+    try {
+      adapter.getFileIDs(getPaths(eventBuffer));
+    } catch (SQLException e) {
+      // TODO: dirty handle here
+      LOG.error("Create Table " + table.getTableName(), e);
+      return table;
+    }
     Map<String, Integer> accessCount = this.getAccessCountMap(eventBuffer);
     String values =
       accessCount
