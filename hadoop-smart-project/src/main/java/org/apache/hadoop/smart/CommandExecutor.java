@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -147,16 +148,25 @@ public class CommandExecutor implements Runnable, ModuleSequenceProto {
    * Add a command to CommandExecutor for execution.
    * @param cmd
    */
-  public synchronized void submitCommand(CommandInfo cmd) {
+  public synchronized void submitCommand(CommandInfo cmd) throws IOException {
     CommandInfo[] retInfos = {cmd};
-    adapter.insertCommandsTable(retInfos);
+    try {
+      adapter.insertCommandsTable(retInfos);
+    } catch (SQLException e) {
+      throw new IOException(e);
+    }
     cmdsAll.put(cmd.getCid(), cmd);
   }
 
   public CommandInfo getCommandInfo(long cid) throws IOException {
     if(cmdsAll.containsKey(cid))
       return cmdsAll.get(cid);
-    List<CommandInfo> ret = adapter.getCommandsTableItem(null, String.format("= %d", cid),null);
+    List<CommandInfo> ret = null;
+    try {
+      adapter.getCommandsTableItem(null, String.format("= %d", cid),null);
+    } catch (SQLException e) {
+      throw new IOException(e);
+    }
     if(ret != null)
       return ret.get(0);
     return null;
@@ -275,7 +285,13 @@ public class CommandExecutor implements Runnable, ModuleSequenceProto {
 
   public List<CommandInfo> getCommandsFromDB() {
     // Get Pending cmds from DB
-    return adapter.getCommandsTableItem(null, null, CommandState.PENDING);
+    try {
+      return adapter.getCommandsTableItem(null, null, CommandState.PENDING);
+    } catch (SQLException e) {
+      // TODO: handle this issue
+      LOG.error(e.getMessage());
+    }
+    return null;
   }
 
   public Long[] getCommands(CommandState state) {
@@ -291,7 +307,12 @@ public class CommandExecutor implements Runnable, ModuleSequenceProto {
     for(Iterator<CmdTuple> iter = statusCache.iterator();iter.hasNext();) {
       CmdTuple ct = iter.next();
       cmdsAll.remove(ct.cid);
-      adapter.updateCommandStatus(ct.cid, ct.rid, ct.state);
+      try {
+        adapter.updateCommandStatus(ct.cid, ct.rid, ct.state);
+      } catch (SQLException e) {
+        // TODO: handle this isssue
+        LOG.error(e.getMessage());
+      }
       iter.remove();
     }
   }
