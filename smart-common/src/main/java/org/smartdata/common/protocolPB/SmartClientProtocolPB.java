@@ -19,7 +19,7 @@ package org.smartdata.common.protocolPB;
 
 import org.apache.hadoop.ipc.ProtocolInfo;
 
-@ProtocolInfo(protocolName = "org.apache.hadoop.ssm.protocolPB.SmartClientProtocolPB",
+@ProtocolInfo(protocolName = "org.smartdata.common.protocolPB.SmartClientProtocolPB",
     protocolVersion = 1)
 public interface SmartClientProtocolPB {
 }

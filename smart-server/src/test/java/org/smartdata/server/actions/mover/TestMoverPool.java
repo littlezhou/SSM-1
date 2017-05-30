@@ -141,6 +141,10 @@ public class TestMoverPool {
       assertTrue(succeed);
       assertFalse(status1.isSuccessful());
 
+      if (MoverPool.getInstance().getStatus(id1) == null) {
+        return;
+      }
+
       // restart mover
       succeed = MoverPool.getInstance().restart(id1);
       assertTrue(succeed);

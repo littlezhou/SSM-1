@@ -25,7 +25,7 @@ new file mode 100644
 index 00000000000..1f39777e6fd
 --- /dev/null
 +++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/metrics/FileAccessMetrics.java
-@@ -0,0 +1,1152 @@
+@@ -0,0 +1,1158 @@
 +/**
 + * Licensed to the Apache Software Foundation (ASF) under one
 + * or more contributor license agreements.  See the NOTICE file
@@ -113,6 +113,7 @@ index 00000000000..1f39777e6fd
 +  private static final String NORMAL_VAL = "1";
 +  private static final String INFO_SEPARATOR = ":";
 +  private static final String RECORD_SEPARATOR = "=";
++  public static final Logger LOG = LoggerFactory.getLogger(FileAccessMetrics.class.getName());
 +
 +  private List<Info> infos = new LinkedList<>();
 +
@@ -651,7 +652,11 @@ index 00000000000..1f39777e6fd
 +      watermarkTimer.schedule(new TimerTask() {
 +        @Override
 +        public void run() {
-+          currentOutStream.println("::" + Time.now() + RECORD_SEPARATOR + WATERMARK_VAL);
++          synchronized (lock) {
++            if (currentOutStream != null) {
++              currentOutStream.println("::" + Time.now() + RECORD_SEPARATOR + WATERMARK_VAL);
++            }
++          }
 +          flush();
 +        }
 +      }, watermarkIntervalMillis, watermarkIntervalMillis);
@@ -915,6 +920,7 @@ index 00000000000..1f39777e6fd
 +        if (currentOutStream != null) {
 +          for (AbstractMetric metric : record.metrics()) {
 +            currentOutStream.print(metric.name() + RECORD_SEPARATOR + NORMAL_VAL);
++            LOG.info("[ACCXX]" + metric.name() + RECORD_SEPARATOR + NORMAL_VAL);
 +          }
 +          currentOutStream.println();
 +

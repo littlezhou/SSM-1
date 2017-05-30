@@ -20,6 +20,8 @@ package org.smartdata.server.metric.fetcher;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.server.namenode.metrics.FileAccessMetrics;
 import org.apache.hadoop.util.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smartdata.server.metastore.sql.tables.AccessCountTableManager;
 import org.smartdata.server.utils.FileAccessEvent;
 
@@ -38,6 +40,8 @@ public class AccessCountFetcher {
   private final Long fetchInterval;
   private ScheduledFuture scheduledFuture;
   private FetchTask fetchTask;
+  public static final Logger LOG =
+      LoggerFactory.getLogger(AccessCountFetcher.class);
 
   public AccessCountFetcher(
       DFSClient client, AccessCountTableManager manager, ScheduledExecutorService service) {
@@ -69,11 +73,15 @@ public class AccessCountFetcher {
     }
   }
 
-  private static class FetchTask implements Runnable {
+  private class FetchTask implements Runnable {
     private final DFSClient client;
     private final AccessCountTableManager manager;
     private FileAccessMetrics.Reader reader;
     private long now;
+    private long statNumRounds = 0;
+    private long statNumValidRounds = 0;
+    private long statNumEvents = 0;
+    private long lastLogTime;
 
     public FetchTask(DFSClient client, AccessCountTableManager manager) {
       this.client = client;
@@ -81,15 +89,23 @@ public class AccessCountFetcher {
       try {
         this.reader = FileAccessMetrics.Reader.create();
       } catch (IOException | URISyntaxException e) {
-        e.printStackTrace();
+        LOG.error(e.getMessage());
       }
       now = Time.now();
+      lastLogTime = now;
     }
 
     @Override
     public void run() {
       try {
+        long curr = System.currentTimeMillis();
+        if (curr - lastLogTime >= 5000) {
+          LOG.info(getStatString());
+          lastLogTime = curr;
+        }
+        statNumRounds++;
         if (reader.exists(now)) {
+          statNumValidRounds++;
           reader.seekTo(now, false);
 
           List<FileAccessEvent> events = new ArrayList<>();
@@ -97,15 +113,23 @@ public class AccessCountFetcher {
             FileAccessMetrics.Info info = reader.next();
             events.add(new FileAccessEvent(info.getPath(), info.getTimestamp()));
             now = info.getTimestamp();
+            LOG.info(" [AccXXXXXXXX] " + info.name());
           }
+          statNumEvents += events.size();
           if(events.size() > 0) {
             this.manager.onAccessEventsArrived(events);
           }
         }
       } catch (IOException | URISyntaxException e) {
-        e.printStackTrace();
+        LOG.error(getStatString(), e);
         throw new RuntimeException(e);
       }
+    }
+
+    public String getStatString() {
+      return String.format(
+          "NumRounds = %d, NumValidRounds = %d, NumEvents = %d",
+          statNumRounds, statNumValidRounds, statNumEvents);
     }
   }
 }

@@ -17,53 +17,25 @@
  */
 package org.smartdata.server;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hdfs.DFSUtil;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.Test;
 import org.smartdata.admin.SmartAdmin;
-import org.smartdata.common.SmartConfiguration;
 import org.smartdata.common.SmartConfigureKeys;
 import org.smartdata.common.rule.RuleInfo;
 import org.smartdata.common.rule.RuleState;
-import org.smartdata.server.metastore.sql.TestDBUtil;
-import org.smartdata.server.metastore.sql.Util;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import static org.apache.hadoop.hdfs.DFSConfigKeys.DFS_NAMENODE_HTTP_ADDRESS_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-public class TestSmartAdmin {
+public class TestSmartAdmin extends TestEmptyMiniSmartCluster {
 
   @Test
   public void test() throws Exception {
-    final Configuration conf = new SmartConfiguration();
-    final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
-        .numDataNodes(4).build();
-    // dfs not used , but datanode.ReplicaNotFoundException throws without dfs
-    final DistributedFileSystem dfs = cluster.getFileSystem();
+    waitTillSSMExitSafeMode();
 
-    final Collection<URI> namenodes = DFSUtil.getInternalNsRpcUris(conf);
-    List<URI> uriList = new ArrayList<>(namenodes);
-    conf.set(DFS_NAMENODE_HTTP_ADDRESS_KEY, uriList.get(0).toString());
-    conf.set(SmartConfigureKeys.DFS_SSM_NAMENODE_RPCSERVER_KEY,
-        uriList.get(0).toString());
-
-    // Set db used
-    String dbFile = TestDBUtil.getUniqueEmptySqliteDBFile();
-    String dbUrl = Util.SQLITE_URL_PREFIX + dbFile;
-    conf.set(SmartConfigureKeys.DFS_SSM_DEFAULT_DB_URL_KEY, dbUrl);
-
-    // rpcServer start in SmartServer
-    SmartServer server = SmartServer.createSSM(null, conf);
     SmartAdmin ssmClient = new SmartAdmin(conf);
 
     while (true) {
@@ -133,7 +105,5 @@ public class TestSmartAdmin {
       caughtException = true;
     }
     assertEquals(true, caughtException);
-    server.shutdown();
-    cluster.shutdown();
   }
 }

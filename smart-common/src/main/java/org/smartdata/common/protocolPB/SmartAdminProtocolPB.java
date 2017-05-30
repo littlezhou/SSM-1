@@ -47,7 +47,7 @@ import org.smartdata.common.protocol.AdminServerProto.DisableCommandRequestProto
 import org.smartdata.common.protocol.AdminServerProto.DeleteCommandResponseProto;
 import org.smartdata.common.protocol.AdminServerProto.DeleteCommandRequestProto;
 
-@ProtocolInfo(protocolName = "org.apache.hadoop.ssm.protocolPB.SmartAdminProtocolPB",
+@ProtocolInfo(protocolName = "org.smartdata.common.protocolPB.SmartAdminProtocolPB",
     protocolVersion = 1)
 public interface SmartAdminProtocolPB {
 

@@ -115,7 +115,7 @@ public class SmartServer {
     if (args == null) {
       args = new String[0];
     }
-    StringUtils.startupShutdownMessage(SmartServer.class, args, LOG);
+    //StringUtils.startupShutdownMessage(SmartServer.class, args, LOG);
     if (args != null) {
       if (parseHelpArgument(args, USAGE, System.out, true)) {
         return null;
