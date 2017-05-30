@@ -19,7 +19,7 @@ package org.smartdata.server.rule.parser;
 
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.smartdata.common.actions.ActionType;
+import org.smartdata.server.api.actions.ActionType;
 import org.smartdata.server.rule.exceptions.RuleParserException;
 import org.smartdata.server.rule.objects.Property;
 import org.smartdata.server.rule.objects.PropertyRealParas;

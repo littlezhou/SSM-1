@@ -15,32 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common;
+package org.smartdata.server.api.metastore.sql;
 
-public enum SmartServiceState {
-  SAFEMODE(0),
-  ACTIVE(1);
+/**
+ * Information maintained for a file cached in hdfs.
+ */
+public class CachedFileStatus {
+  private long fid;
+  private long fromTime;
+  private long lastAccessTime;
+  private int numAccessed;
 
-  private int value;
-
-  SmartServiceState(int value) {
-    this.value = value;
+  public CachedFileStatus(long fid,
+                          long fromTime,
+                          long lastAccessTime,
+                          int numAccessed) {
+    this.fid = fid;
+    this.fromTime = fromTime;
+    this.lastAccessTime = lastAccessTime;
+    this.numAccessed = numAccessed;
   }
 
-  public static SmartServiceState fromValue(int v) {
-    for (SmartServiceState s : values()) {
-      if (s.getValue() == v) {
-        return s;
-      }
-    }
-    return null;
+  public long getFid() {
+    return fid;
   }
 
-  public int getValue() {
-    return value;
+  public long getFromTime() {
+    return fromTime;
   }
 
-  public String getName() {
-    return toString();
+  public long getLastAccessTime() {
+    return lastAccessTime;
+  }
+
+  public int getNumAccessed() {
+    return numAccessed;
   }
 }

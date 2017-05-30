@@ -20,8 +20,8 @@ package org.smartdata.server.rule;
 import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.admin.SmartAdmin;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 import org.smartdata.server.TestEmptyMiniSmartCluster;
 
 import java.io.IOException;

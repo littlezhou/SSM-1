@@ -18,8 +18,8 @@
 package org.smartdata.server.command;
 
 import org.apache.hadoop.conf.Configuration;
-import org.smartdata.common.CommandState;
-import org.smartdata.common.command.CommandInfo;
+import org.smartdata.server.api.CommandState;
+import org.smartdata.server.api.command.CommandInfo;
 import org.smartdata.server.ModuleSequenceProto;
 import org.smartdata.server.SmartServer;
 import org.smartdata.server.actions.Action;

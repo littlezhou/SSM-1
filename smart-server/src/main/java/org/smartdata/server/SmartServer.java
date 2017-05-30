@@ -36,7 +36,7 @@ import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.ipc.RemoteException;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.common.SmartServiceState;
+import org.smartdata.server.api.SmartServiceState;
 import org.smartdata.server.command.CommandExecutor;
 import org.smartdata.server.rule.RuleManager;
 import org.smartdata.server.metastore.sql.DBAdapter;

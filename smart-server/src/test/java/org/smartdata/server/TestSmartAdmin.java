@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.smartdata.admin.SmartAdmin;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.conf.SmartConfKeys;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 import org.smartdata.server.metastore.sql.TestDBUtil;
 import org.smartdata.server.metastore.sql.Util;
 

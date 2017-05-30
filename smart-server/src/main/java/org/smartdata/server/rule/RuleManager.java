@@ -19,9 +19,9 @@ package org.smartdata.server.rule;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
-import org.smartdata.common.command.CommandInfo;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
+import org.smartdata.server.api.command.CommandInfo;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 import org.smartdata.server.ModuleSequenceProto;
 import org.smartdata.server.SmartServer;
 import org.smartdata.server.StatesManager;

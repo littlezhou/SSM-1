@@ -15,50 +15,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common.protocolPB;
+package org.smartdata.server.api.protocolPB;
 
 import com.google.protobuf.RpcController;
 import com.google.protobuf.ServiceException;
-import org.smartdata.common.CommandState;
-import org.smartdata.common.protocol.AdminServerProto.protoService.BlockingInterface;
-import org.smartdata.common.protocol.AdminServerProto.CheckRuleRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.CheckRuleResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.GetRuleInfoRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.GetRuleInfoResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.GetServiceStateRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.GetServiceStateResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.ListRulesInfoRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.ListRulesInfoResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.RuleInfoProto;
-import org.smartdata.common.protocol.AdminServerProto.SubmitRuleRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.SubmitRuleResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.DeleteRuleResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.ActivateRuleResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.DisableRuleResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.DeleteRuleRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.ActivateRuleRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.DisableRuleRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.GetCommandInfoResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.GetCommandInfoRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.ListCommandInfoResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.ListCommandInfoRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.ActivateCommandResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.ActivateCommandRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.DisableCommandResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.DisableCommandRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.DeleteCommandResponseProto;
-import org.smartdata.common.protocol.AdminServerProto.DeleteCommandRequestProto;
-import org.smartdata.common.protocol.AdminServerProto.CommandInfoProto;
-import org.smartdata.common.protocol.SmartAdminProtocol;
-import org.smartdata.common.SmartServiceState;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.command.CommandInfo;
+import org.smartdata.server.api.CommandState;
+import org.smartdata.server.api.protocol.AdminServerProto.protoService.BlockingInterface;
+import org.smartdata.server.api.protocol.AdminServerProto.CheckRuleRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.CheckRuleResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.GetRuleInfoRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.GetRuleInfoResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.GetServiceStateRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.GetServiceStateResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ListRulesInfoRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ListRulesInfoResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.RuleInfoProto;
+import org.smartdata.server.api.protocol.AdminServerProto.SubmitRuleRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.SubmitRuleResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DeleteRuleResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ActivateRuleResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DisableRuleResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DeleteRuleRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ActivateRuleRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DisableRuleRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.GetCommandInfoResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.GetCommandInfoRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ListCommandInfoResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ListCommandInfoRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ActivateCommandResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.ActivateCommandRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DisableCommandResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DisableCommandRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DeleteCommandResponseProto;
+import org.smartdata.server.api.protocol.AdminServerProto.DeleteCommandRequestProto;
+import org.smartdata.server.api.protocol.AdminServerProto.CommandInfoProto;
+import org.smartdata.server.api.protocol.SmartAdminProtocol;
+import org.smartdata.server.api.SmartServiceState;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.command.CommandInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.smartdata.common.protocolPB.PBHelper.convert;
 
 public class ClientSmartProtocolServerSideTranslatorPB implements
     SmartAdminProtocolPB, SmartClientProtocolPB,

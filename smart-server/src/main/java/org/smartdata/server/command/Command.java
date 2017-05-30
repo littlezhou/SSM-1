@@ -17,7 +17,7 @@
  */
 package org.smartdata.server.command;
 
-import org.smartdata.common.CommandState;
+import org.smartdata.server.api.CommandState;
 import org.smartdata.server.actions.Action;
 
 import java.io.IOException;

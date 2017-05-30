@@ -23,7 +23,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.StorageType;
 import org.apache.hadoop.hdfs.*;
 
-import org.smartdata.common.CommandState;
+import org.smartdata.server.api.CommandState;
 import org.smartdata.server.actions.Action;
 import org.smartdata.server.actions.CacheFile;
 import org.smartdata.server.actions.MoveFile;

@@ -22,10 +22,10 @@ import org.apache.hadoop.hdfs.DFSUtil;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.common.CommandState;
-import org.smartdata.common.command.CommandInfo;
-import org.smartdata.common.actions.ActionType;
-import org.smartdata.common.metastore.sql.CachedFileStatus;
+import org.smartdata.server.api.CommandState;
+import org.smartdata.server.api.command.CommandInfo;
+import org.smartdata.server.api.actions.ActionType;
+import org.smartdata.server.api.metastore.sql.CachedFileStatus;
 
 import java.io.File;
 import java.sql.Connection;

@@ -15,36 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common;
+package org.smartdata.server.api.protocolPB;
 
-/**
- * The possible state that a command can be in.
- */
-public enum CommandState {
-  NOTINITED(0),
-  PENDING(1), // Ready for execution
-  EXECUTING(2), // Still running
-  PAUSED(3),
-  DONE(4), // Execution successful
-  CANCELLED(5),
-  DISABLED(6), // Disable this Command, kill all executing actions
-  DRYRUN(7); // TODO Don't Run, but keep status
+import org.apache.hadoop.ipc.ProtocolInfo;
 
-  private int value;
-
-  private CommandState(int value) {
-    this.value = value;
-  }
-  public static CommandState fromValue(int value) {
-    for (CommandState r : values()) {
-      if (value == r.getValue()) {
-        return r;
-      }
-    }
-    return null;
-  }
-
-  public int getValue() {
-    return value;
-  }
+@ProtocolInfo(protocolName = "org.apache.hadoop.ssm.protocolPB.SmartClientProtocolPB",
+    protocolVersion = 1)
+public interface SmartClientProtocolPB {
 }

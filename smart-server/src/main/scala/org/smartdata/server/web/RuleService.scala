@@ -20,7 +20,7 @@ package org.smartdata.server.web
 import java.util
 import java.util.{HashMap, Map}
 
-import org.smartdata.common.command.CommandInfo
+import org.smartdata.server.api.command.CommandInfo
 import org.smartdata.server.SmartServer
 
 import scala.collection.JavaConverters._
@@ -29,9 +29,9 @@ import akka.http.scaladsl.server.Directives.{complete, path}
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import com.google.gson.Gson
-import org.smartdata.common.actions.ActionType
-import org.smartdata.common.CommandState
-import org.smartdata.common.rule.{RuleInfo, RuleState}
+import org.smartdata.server.api.actions.ActionType
+import org.smartdata.server.api.CommandState
+import org.smartdata.server.api.rule.{RuleInfo, RuleState}
 import org.smartdata.server.utils.JsonUtil
 
 import scala.util.Random

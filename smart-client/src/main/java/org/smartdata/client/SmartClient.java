@@ -17,8 +17,7 @@
  */
 package org.smartdata.client;
 
-
-import org.smartdata.common.protocol.SmartClientProtocol;
+import org.smartdata.server.api.protocol.SmartClientProtocol;
 
 public class SmartClient implements java.io.Closeable, SmartClientProtocol {
   @Override

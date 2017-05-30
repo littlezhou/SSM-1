@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common.protocolPB;
+package org.smartdata.server.api.protocolPB;
 
 
 import com.google.protobuf.ServiceException;
-import org.smartdata.common.CommandState;
-import org.smartdata.common.actions.ActionType;
-import org.smartdata.common.protocol.AdminServerProto.CommandInfoProto;
-import org.smartdata.common.protocol.AdminServerProto.RuleInfoProto;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
-import org.smartdata.common.command.CommandInfo;
+import org.smartdata.server.api.CommandState;
+import org.smartdata.server.api.actions.ActionType;
+import org.smartdata.server.api.protocol.AdminServerProto.CommandInfoProto;
+import org.smartdata.server.api.protocol.AdminServerProto.RuleInfoProto;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
+import org.smartdata.server.api.command.CommandInfo;
 
 import java.io.IOException;
 

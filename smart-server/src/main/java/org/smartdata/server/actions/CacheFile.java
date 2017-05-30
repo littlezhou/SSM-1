@@ -29,7 +29,7 @@ import org.apache.hadoop.hdfs.protocol.CachePoolInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smartdata.common.actions.ActionType;
+import org.smartdata.server.api.actions.ActionType;
 
 import java.util.Date;
 import java.util.EnumSet;

@@ -15,11 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common.protocolPB;
+package org.smartdata.server.api.rule;
 
-import org.apache.hadoop.ipc.ProtocolInfo;
+/**
+ * The possible state that a rule can be in.
+ */
+public enum RuleState {
+  ACTIVE(0),      // functioning
+  DRYRUN(1),      // without execute the rule commands
+  DISABLED(2),    // stop maintain info for the rule
+  FINISHED(3),    // for one-shot rule
+  DELETED(4);
 
-@ProtocolInfo(protocolName = "org.apache.hadoop.ssm.protocolPB.SmartClientProtocolPB",
-    protocolVersion = 1)
-public interface SmartClientProtocolPB {
+  private int value;
+
+  private RuleState(int value) {
+    this.value = value;
+  }
+
+  public static RuleState fromValue(int value) {
+    for (RuleState r : values()) {
+      if (value == r.getValue()) {
+        return r;
+      }
+    }
+    return null;
+  }
+
+  public static RuleState fromName(String name) {
+    for (RuleState r : values()) {
+      if (r.toString().equalsIgnoreCase(name)) {
+        return r;
+      }
+    }
+    return null;
+  }
+
+  public int getValue() {
+    return value;
+  }
 }

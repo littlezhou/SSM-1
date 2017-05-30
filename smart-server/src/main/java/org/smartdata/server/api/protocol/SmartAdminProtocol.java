@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common.protocol;
+package org.smartdata.server.api.protocol;
 
-import org.smartdata.common.CommandState;
-import org.smartdata.common.SmartServiceState;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
-import org.smartdata.common.command.CommandInfo;
+import org.smartdata.server.api.CommandState;
+import org.smartdata.server.api.SmartServiceState;
+import org.smartdata.server.api.command.CommandInfo;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 
 import java.io.IOException;
 import java.util.List;

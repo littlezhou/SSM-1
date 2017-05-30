@@ -18,7 +18,7 @@
 package org.smartdata.server.actions;
 
 import org.apache.hadoop.hdfs.DFSClient;
-import org.smartdata.common.actions.ActionType;
+import org.smartdata.server.api.actions.ActionType;
 
 import java.util.UUID;
 

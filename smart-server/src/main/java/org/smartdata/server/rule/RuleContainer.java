@@ -17,8 +17,8 @@
  */
 package org.smartdata.server.rule;
 
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 import org.smartdata.server.rule.parser.TranslateResult;
 import org.smartdata.server.rule.parser.TranslationContext;
 import org.smartdata.server.metastore.sql.DBAdapter;

@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.smartdata.admin.SmartAdmin;
 import org.smartdata.admin.tools.SmartShell;
-import org.smartdata.common.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleInfo;
 import org.smartdata.server.TestEmptyMiniSmartCluster;
 import org.smartdata.server.metastore.sql.TestDBUtil;
 

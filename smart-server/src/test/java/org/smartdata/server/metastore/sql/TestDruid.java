@@ -19,8 +19,8 @@ package org.smartdata.server.metastore.sql;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 
 import java.io.InputStream;
 import java.util.Properties;

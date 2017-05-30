@@ -18,7 +18,7 @@
 package org.smartdata.client.protocolPB;
 
 import org.apache.hadoop.ipc.RPC;
-import org.smartdata.common.protocolPB.SmartClientProtocolPB;
+import org.smartdata.server.api.protocolPB.SmartClientProtocolPB;
 
 import java.io.IOException;
 

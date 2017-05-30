@@ -19,7 +19,7 @@ package org.smartdata.server.actions;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSClient;
-import org.smartdata.common.actions.ActionType;
+import org.smartdata.server.api.actions.ActionType;
 import org.smartdata.server.actions.mover.MoverPool;
 
 import org.slf4j.Logger;

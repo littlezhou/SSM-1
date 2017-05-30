@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common.command;
+package org.smartdata.server.api.command;
 
-import org.smartdata.common.CommandState;
-import org.smartdata.common.actions.ActionType;
 
+import org.smartdata.server.api.CommandState;
+import org.smartdata.server.api.actions.ActionType;
 
 public class CommandInfo {
   private long cid;

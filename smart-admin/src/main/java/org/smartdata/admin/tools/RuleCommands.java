@@ -23,8 +23,8 @@ import org.apache.hadoop.fs.shell.Command;
 import org.apache.hadoop.fs.shell.CommandFactory;
 import org.smartdata.admin.SmartAdmin;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 
 import java.io.File;
 import java.io.FileInputStream;

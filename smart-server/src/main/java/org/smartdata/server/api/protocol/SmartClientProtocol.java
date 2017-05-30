@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.common.protocol;
+package org.smartdata.server.api.protocol;
 
 /**
  * Interface between SmartClient and SmartServer.

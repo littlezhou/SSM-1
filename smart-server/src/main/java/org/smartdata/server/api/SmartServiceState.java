@@ -15,9 +15,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.ssm.protocol;
+package org.smartdata.server.api;
 
-option java_package = "org.smartdata.common.protocol";
-option java_outer_classname = "ClientServerProto";
-option java_generic_services = true;
-option java_generate_equals_and_hash = true;
+public enum SmartServiceState {
+  SAFEMODE(0),
+  ACTIVE(1);
+
+  private int value;
+
+  SmartServiceState(int value) {
+    this.value = value;
+  }
+
+  public static SmartServiceState fromValue(int v) {
+    for (SmartServiceState s : values()) {
+      if (s.getValue() == v) {
+        return s;
+      }
+    }
+    return null;
+  }
+
+  public int getValue() {
+    return value;
+  }
+
+  public String getName() {
+    return toString();
+  }
+}

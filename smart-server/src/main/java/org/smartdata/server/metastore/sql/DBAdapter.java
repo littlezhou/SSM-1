@@ -23,12 +23,12 @@ import org.apache.hadoop.fs.XAttr;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.XAttrHelper;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
-import org.smartdata.common.CommandState;
-import org.smartdata.common.command.CommandInfo;
-import org.smartdata.common.actions.ActionType;
-import org.smartdata.common.metastore.sql.CachedFileStatus;
-import org.smartdata.common.rule.RuleInfo;
-import org.smartdata.common.rule.RuleState;
+import org.smartdata.server.api.CommandState;
+import org.smartdata.server.api.command.CommandInfo;
+import org.smartdata.server.api.actions.ActionType;
+import org.smartdata.server.api.metastore.sql.CachedFileStatus;
+import org.smartdata.server.api.rule.RuleInfo;
+import org.smartdata.server.api.rule.RuleState;
 import org.smartdata.server.metastore.sql.tables.AccessCountTable;
 
 import java.io.IOException;
