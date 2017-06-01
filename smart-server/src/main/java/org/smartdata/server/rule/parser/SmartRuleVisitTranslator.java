@@ -707,6 +707,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
       VisitResult vr = vNode.eval();
       if (vr.isConst()) {
         switch (vr.getValueType()) {
+          case TIMEINTVAL:
           case LONG:
             return new NodeTransResult(null, "" + ((Long) vr.getValue()));
           case STRING:

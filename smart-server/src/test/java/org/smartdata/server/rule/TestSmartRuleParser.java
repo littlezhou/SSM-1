@@ -72,7 +72,9 @@ public class TestSmartRuleParser {
     String rule4 = "file : accessCountX(10m) > 2 and length() > 3 | cachefile";
     String rule5 = "file: every 5s from now to now + 100d | length > 3 | cachefile";
     String rule6 = "file: every 5s | length > 100mb | movefile \"ONE_SSD\"";
-    String rule = rule6;
+    String rule7 = "file : every 1s | age > 100day | cachefile";
+    String rule8 = "file : every 1s | mtime > 100s | cachefile";
+    String rule = rule8;
     InputStream input = new ByteArrayInputStream(rule.getBytes());
     ANTLRInputStream antlrInput = new ANTLRInputStream(input);
     SmartRuleLexer lexer = new SmartRuleLexer(antlrInput);
