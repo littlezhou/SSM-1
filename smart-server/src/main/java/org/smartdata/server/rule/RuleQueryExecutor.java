@@ -312,13 +312,8 @@ public class RuleQueryExecutor implements Runnable {
     }
 
     long time = System.currentTimeMillis();
-    Map<String, String> parameters = tr.getActionParams();
     List<CommandInfo> cmds = new ArrayList<>(files.size());
     for (String file : files) {
-      parameters.put("_FILE_PATH_", file);
-      cmds.add(new CommandInfo(0L, info.getId(), tr.getActionType(),
-          CommandState.PENDING, JsonUtil.toJsonString(parameters),
-          time, time));
     }
     return cmds;
   }
