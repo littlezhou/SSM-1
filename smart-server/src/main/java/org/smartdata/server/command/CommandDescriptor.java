@@ -26,6 +26,11 @@ public class CommandDescriptor {
   private List<String> actionNames = new ArrayList<>();
   private List<String[]> actionArgs = new ArrayList<>();
 
+  private static final String REG_ACTION_NAME = "^[a-zA-Z_]+[a-zA-Z0-9_]*\\s+";
+  private static final String REG_OPT_CHARS = "^\\S+\\s+";
+  private static final String REG_OPT_STRING = "^\\S+\\s+";
+
+
   public CommandDescriptor() {
   }
 
@@ -64,5 +69,53 @@ public class CommandDescriptor {
   public static CommandDescriptor fromCommandString(String cmdString)
       throws ParseException {
     return new CommandDescriptor();
+  }
+
+  private void parseCommandString(String cmdStr) throws ParseException {
+    if (cmdStr == null) {
+      return;
+    }
+    String cmd = cmdStr.trim();
+    boolean matched = cmd.matches(REG_ACTION_NAME);
+    if (!matched) {
+      throw new ParseException("Invalid action name: " + cmd, 0);
+    }
+    String cmdArgs = cmd.replaceFirst(REG_ACTION_NAME, "");
+    String actionName = cmd.substring(0,
+        cmd.length() - cmdArgs.length()).trim();
+
+
+    int start = 0;
+    int end = cmdArgs.length();
+    List<String> args = new ArrayList<>();
+
+    while (start < end) {
+      int i = start;
+      if (cmdArgs.charAt(i) != '"') {
+        i++;
+        for (; i < end; i++) {
+          char c = cmdArgs.charAt(i);
+          if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == ';') {
+            break;
+          }
+        }
+        args.add(cmdArgs.substring(start, i).trim());
+        start = i + 1;
+      } else {
+        // TODO: check more cases
+      }
+    }
+
+    while (cmdArgs.length() > 0) {
+      if (cmdArgs.charAt(0) == '"') {
+
+      } else {
+      }
+    }
+
+    boolean optStart = true;
+    for (int i = 0; i < cmdArgs.length(); i++) {
+      if (optStart && cmdArgs.charAt(i))
+    }
   }
 }
