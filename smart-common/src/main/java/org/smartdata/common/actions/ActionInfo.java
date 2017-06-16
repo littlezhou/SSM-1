@@ -18,11 +18,13 @@
 package org.smartdata.common.actions;
 
 
+import java.util.Map;
+
 public class ActionInfo {
   private long actionId;
   private long commandId;
   private String actionName;
-  private String[] args;
+  private Map<String, String> args;
   private String result;
   private String log;
 
@@ -34,7 +36,7 @@ public class ActionInfo {
   private float progress;
 
   public ActionInfo(long actionId, long commandId, String actionName,
-                    String[] args, String result, String log,
+                    Map<String, String> args, String result, String log,
                     boolean successful, long createTime, boolean finished,
                     long finishTime, float progress) {
     this.actionId = actionId;
@@ -74,11 +76,11 @@ public class ActionInfo {
     this.actionName = actionName;
   }
 
-  public String[] getArgs() {
+  public Map<String, String> getArgs() {
     return args;
   }
 
-  public void setArgs(String[] args) {
+  public void setArgs(Map<String, String> args) {
     this.args = args;
   }
 
@@ -146,7 +148,7 @@ public class ActionInfo {
     private long actionId;
     private long commandId;
     private String actionName;
-    private String[] args;
+    private Map<String, String> args;
     private String result;
     private String log;
 
@@ -173,7 +175,7 @@ public class ActionInfo {
       return this;
     }
 
-    public Builder setArgs(String[] args) {
+    public Builder setArgs(Map<String, String> args) {
       this.args = args;
       return this;
     }
