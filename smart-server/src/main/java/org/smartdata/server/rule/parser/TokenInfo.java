@@ -17,38 +17,10 @@
  */
 package org.smartdata.server.rule.parser;
 
-import java.io.IOException;
-
-public class OperNode extends TreeNode {
-  private OperatorType operatorType;
-
-  public OperNode(OperatorType type, TreeNode left, TreeNode right) {
-    super(left, right);
-    operatorType = type;
-  }
-
-  // return this node's return type
-  public ValueType getValueType() {
-    if (operatorType.isLogicalOperation()) {
-      return ValueType.BOOLEAN;
-    }
-    // TODO: to be completed
-    return left.getValueType();
-  }
-
-  public OperatorType getOperatorType() {
-    return operatorType;
-  }
-
-  // TODO: check if any miss match in the tree
-  public void checkValueType() throws IOException {
-  }
-
-  public VisitResult eval() throws IOException {
-    return left.eval().eval(operatorType, right == null ? null : right.eval());
-  }
-
-  public boolean isOperNode() {
-    return true;
-  }
+public class TokenInfo {
+  private int charStart;
+  private int charEnd;
+  private int line;
+  private int idxInLine;
+  private String rawText;
 }

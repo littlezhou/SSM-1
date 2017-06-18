@@ -613,7 +613,7 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
       result = new ValueNode(
           new VisitResult(ValueType.TIMEPOINT, date.getTime()));
     } catch (ParseException e) {
-      result = new ValueNode(new VisitResult());
+      throw new RuleParserException("Invalid time point string '" + str + "'");
     }
     return result;
   }

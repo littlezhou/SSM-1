@@ -19,16 +19,31 @@ package org.smartdata.server.rule.parser;
 
 import java.io.IOException;
 
-/**
- * Created by root on 3/24/17.
- */
 public abstract class TreeNode {
   protected TreeNode left;
   protected TreeNode right;
+  protected TreeNode parent;
 
   public TreeNode(TreeNode left, TreeNode right) {
     this.left = left;
     this.right = right;
+  }
+
+  public void setParent(TreeNode parent) {
+    this.parent = parent;
+  }
+
+  public TreeNode getParent() {
+    return parent;
+  }
+
+  public TreeNode getPeer() {
+    if (getParent() == null) {
+      return null;
+    }
+
+    return getParent().getLeft() == this ?
+        getParent().getRight() : getParent().getRight();
   }
 
   public abstract VisitResult eval() throws IOException;

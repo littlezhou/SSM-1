@@ -30,14 +30,7 @@ public class VisitResult {
   private ValueType type;
   private Object value;
   private PropertyRealParas realParas;
-
-  public VisitResult() {
-    this.type = ValueType.ERROR;
-  }
-
-  public VisitResult(ValueType type) {
-    this.type = type;
-  }
+  private TokenInfo tokenInfo;
 
   public void setValue(Object value) {
     this.value = value;
