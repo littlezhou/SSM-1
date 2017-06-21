@@ -34,6 +34,8 @@
     <module>smart-zeppelin</module>
     <module>smart-agent</module>
     <module>smart-dist</module>
+    <module>smart-hdfs</module>
+    <module>smart-servicecommon</module>
   </modules>
 
   <properties>
