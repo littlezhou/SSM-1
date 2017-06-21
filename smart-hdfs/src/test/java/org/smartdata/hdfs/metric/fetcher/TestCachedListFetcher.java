@@ -41,7 +41,6 @@ import org.apache.hadoop.hdfs.DFSClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.smartdata.server.metastore.TestDaoUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;

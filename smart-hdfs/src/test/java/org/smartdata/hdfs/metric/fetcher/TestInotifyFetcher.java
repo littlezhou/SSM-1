@@ -32,6 +32,7 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hdfs.inotify.Event;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.smartdata.server.metastore.DBAdapter;
 
 import java.io.IOException;
@@ -41,8 +42,6 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.Executors;
-
-import static org.mockito.Mockito.mock;
 
 public class TestInotifyFetcher {
   private static final int BLOCK_SIZE = 1024;

@@ -23,6 +23,8 @@ import org.apache.hadoop.hdfs.inotify.Event;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.smartdata.server.metastore.DBAdapter;
 import org.smartdata.server.metastore.DBTest;
 import org.smartdata.server.metastore.MetaUtil;
@@ -33,10 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class TestInotifyEventApplier extends DBTest {
 
