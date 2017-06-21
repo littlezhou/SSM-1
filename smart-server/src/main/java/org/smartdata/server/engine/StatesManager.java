@@ -17,7 +17,6 @@
  */
 package org.smartdata.server.engine;
 
-import org.apache.hadoop.hdfs.DFSClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.AbstractService;
@@ -26,17 +25,12 @@ import org.smartdata.metrics.FileAccessEvent;
 import org.smartdata.metrics.FileAccessEventSource;
 import org.smartdata.metrics.impl.MetricsFactory;
 import org.smartdata.server.ServerContext;
-import org.smartdata.server.metastore.DBAdapter;
 import org.smartdata.server.metastore.FileAccessInfo;
 import org.smartdata.server.metastore.tables.AccessCountTable;
 import org.smartdata.server.metastore.tables.AccessCountTableManager;
 import org.smartdata.server.metric.fetcher.AccessEventFetcher;
-import org.smartdata.server.metric.fetcher.CachedListFetcher;
-import org.smartdata.server.metric.fetcher.InotifyEventFetcher;
-import org.smartdata.server.utils.HadoopUtils;
 
 import java.io.IOException;
-import java.net.URI;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -48,13 +42,11 @@ import java.util.concurrent.ScheduledExecutorService;
 public class StatesManager extends AbstractService {
   private ServerContext serverContext;
 
-  private DFSClient client;
   private ScheduledExecutorService executorService;
   private AccessCountTableManager accessCountTableManager;
-  private InotifyEventFetcher inotifyEventFetcher;
   private AccessEventFetcher accessEventFetcher;
-  private CachedListFetcher cachedListFetcher;
   private FileAccessEventSource fileAccessEventSource;
+  private AbstractService nameSpaceService;
 
   public static final Logger LOG = LoggerFactory.getLogger(StatesManager.class);
 
@@ -71,20 +63,14 @@ public class StatesManager extends AbstractService {
   @Override
   public void init() throws IOException {
     LOG.info("Initializing ...");
-    this.cleanFileTableContents(serverContext.getDbAdapter());
-    URI nnUri = HadoopUtils.getNameNodeUri(serverContext.getConf());
-    this.client = new DFSClient(nnUri, serverContext.getConf());
     this.executorService = Executors.newScheduledThreadPool(4);
     this.accessCountTableManager = new AccessCountTableManager(
         serverContext.getDbAdapter(), executorService);
     this.fileAccessEventSource = MetricsFactory.createAccessEventSource(serverContext.getConf());
-    this.cachedListFetcher = new CachedListFetcher(client, serverContext.getDbAdapter());
     this.accessEventFetcher =
         new AccessEventFetcher(
             serverContext.getConf(), accessCountTableManager,
             executorService, fileAccessEventSource.getCollector());
-    this.inotifyEventFetcher = new InotifyEventFetcher(client,
-        serverContext.getDbAdapter(), executorService);
     LOG.info("Initialized.");
   }
 
@@ -94,18 +80,13 @@ public class StatesManager extends AbstractService {
   @Override
   public void start() throws IOException, InterruptedException {
     LOG.info("Starting ...");
-    this.inotifyEventFetcher.start();
     this.accessEventFetcher.start();
-    this.cachedListFetcher.start();
     LOG.info("Started. ");
   }
 
   @Override
   public void stop() throws IOException {
     LOG.info("Stopping ...");
-    if (inotifyEventFetcher != null) {
-      this.inotifyEventFetcher.stop();
-    }
 
     if (accessEventFetcher != null) {
       this.accessEventFetcher.stop();
@@ -113,14 +94,11 @@ public class StatesManager extends AbstractService {
     if (this.fileAccessEventSource != null) {
       this.fileAccessEventSource.close();
     }
-    if (this.cachedListFetcher != null) {
-      this.cachedListFetcher.stop();
-    }
     LOG.info("Stopped.");
   }
 
   public List<CachedFileStatus> getCachedList() throws SQLException {
-    return this.cachedListFetcher.getCachedList();
+    return serverContext.getDbAdapter().getCachedFileStatus();
   }
 
   public List<AccessCountTable> getTablesInLast(long timeInMills) throws SQLException {
@@ -130,30 +108,6 @@ public class StatesManager extends AbstractService {
   public void reportFileAccessEvent(FileAccessEvent event) throws IOException {
     event.setTimeStamp(System.currentTimeMillis());
     this.fileAccessEventSource.insertEventFromSmartClient(event);
-  }
-
-  /**
-   * RuleManger uses this function to subscribe events interested.
-   * StatesManager poll these events from NN or generate these events.
-   * That is, for example, if no rule interests in FileOpen event then
-   * StatesManager will not get these info from NN.
-   */
-  public void subscribeEvent() {
-  }
-
-  /**
-   * After unsubscribe the envent, it will not be notified when the
-   * event happened.
-   */
-  public void unsubscribeEvent() {
-  }
-
-  private void cleanFileTableContents(DBAdapter adapter) throws IOException {
-    try {
-      adapter.execute("DELETE FROM files");
-    } catch (SQLException e) {
-      throw new IOException("Error while 'DELETE FROM files'", e);
-    }
   }
 
   public List<FileAccessInfo> getHotFiles(List<AccessCountTable> tables,

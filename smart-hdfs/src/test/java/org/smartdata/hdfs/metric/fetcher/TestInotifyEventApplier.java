@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.metric.fetcher;
+package org.smartdata.hdfs.metric.fetcher;
 
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DFSClient;
@@ -42,7 +42,7 @@ public class TestInotifyEventApplier extends DBTest {
 
   @Test
   public void testApplier() throws Exception {
-    DFSClient client = mock(DFSClient.class);
+    DFSClient client = Mockito.mock(DFSClient.class);
     Connection connection = databaseTester.getConnection().getConnection();
     MetaUtil.initializeDataBase(connection);
     DBAdapter adapter = new DBAdapter(connection);
@@ -77,7 +77,7 @@ public class TestInotifyEventApplier extends DBTest {
             0,
             null,
             (byte) 0);
-    when(client.getFileInfo(anyString())).thenReturn(status1);
+    Mockito.when(client.getFileInfo(Matchers.anyString())).thenReturn(status1);
     applier.apply(new Event[] {createEvent});
 
     ResultSet result1 = adapter.executeQuery("SELECT * FROM files");

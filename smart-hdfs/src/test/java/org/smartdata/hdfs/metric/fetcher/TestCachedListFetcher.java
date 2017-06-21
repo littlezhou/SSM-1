@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.metric.fetcher;
+package org.smartdata.hdfs.metric.fetcher;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -36,8 +36,6 @@ import org.smartdata.common.metastore.CachedFileStatus;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.server.metastore.DBAdapter;
 import org.smartdata.server.metastore.FileStatusInternal;
-import org.smartdata.server.metastore.TestDBUtil;
-import org.smartdata.server.metastore.MetaUtil;
 
 import org.apache.hadoop.hdfs.DFSClient;
 import org.junit.After;
@@ -45,8 +43,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.smartdata.server.metastore.TestDaoUtil;
 
-import java.io.File;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

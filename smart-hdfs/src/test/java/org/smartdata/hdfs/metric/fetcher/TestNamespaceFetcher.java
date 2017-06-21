@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.metric.fetcher;
+package org.smartdata.hdfs.metric.fetcher;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -26,6 +26,8 @@ import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hdfs.inotify.MissingEventsException;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.server.metastore.DBAdapter;
 import org.smartdata.server.metastore.FileStatusInternal;
@@ -68,21 +70,24 @@ public class TestNamespaceFetcher {
     final Configuration conf = new SmartConf();
     final MiniDFSCluster cluster = new MiniDFSCluster.Builder(conf)
       .numDataNodes(2).build();
-    final DistributedFileSystem dfs = cluster.getFileSystem();
-    dfs.mkdir(new Path("/user"), new FsPermission("777"));
-    dfs.create(new Path("/user/user1"));
-    dfs.create(new Path("/user/user2"));
-    dfs.mkdir(new Path("/tmp"), new FsPermission("777"));
-    DFSClient client = dfs.getClient();
+    try {
+      final DistributedFileSystem dfs = cluster.getFileSystem();
+      dfs.mkdir(new Path("/user"), new FsPermission("777"));
+      dfs.create(new Path("/user/user1"));
+      dfs.create(new Path("/user/user2"));
+      dfs.mkdir(new Path("/tmp"), new FsPermission("777"));
+      DFSClient client = dfs.getClient();
 
-    DBAdapter adapter = mock(DBAdapter.class);
-    NamespaceFetcher fetcher = new NamespaceFetcher(client, adapter, 100);
-    fetcher.startFetch();
-    List<String> expected = Arrays.asList("/", "/user", "/user/user1", "/user/user2", "/tmp");
-    Thread.sleep(1000);
+      DBAdapter adapter = Mockito.mock(DBAdapter.class);
+      NamespaceFetcher fetcher = new NamespaceFetcher(client, adapter, 100);
+      fetcher.startFetch();
+      List<String> expected = Arrays.asList("/", "/user", "/user/user1", "/user/user2", "/tmp");
+      Thread.sleep(1000);
 
-    verify(adapter).insertFiles(argThat(new FileStatusArgMatcher(expected)));
-    fetcher.stop();
-    cluster.shutdown();
+      Mockito.verify(adapter).insertFiles(Matchers.argThat(new FileStatusArgMatcher(expected)));
+      fetcher.stop();
+    } finally {
+      cluster.shutdown();
+    }
   }
 }

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.util;
+package org.smartdata.hdfs.metric.fetcher;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -23,7 +23,6 @@ import org.apache.hadoop.hdfs.inotify.Event;
 import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.junit.Assert;
 import org.junit.Test;
-import org.smartdata.server.utils.EventBatchSerializer;
 
 import java.util.ArrayList;
 import java.util.Arrays;

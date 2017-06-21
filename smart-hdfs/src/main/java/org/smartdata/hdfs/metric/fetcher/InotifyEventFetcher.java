@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.metric.fetcher;
+package org.smartdata.hdfs.metric.fetcher;
 
 import com.squareup.tape.QueueFile;
 import org.apache.hadoop.hdfs.DFSClient;
@@ -23,7 +23,6 @@ import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.inotify.EventBatch;
 import org.apache.hadoop.hdfs.inotify.MissingEventsException;
 import org.smartdata.server.metastore.DBAdapter;
-import org.smartdata.server.utils.EventBatchSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

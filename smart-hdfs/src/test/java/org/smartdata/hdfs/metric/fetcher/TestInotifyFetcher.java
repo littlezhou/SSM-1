@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.metric.fetcher;
+package org.smartdata.hdfs.metric.fetcher;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CreateFlag;
@@ -88,7 +88,7 @@ public class TestInotifyFetcher {
         BLOCK_SIZE * 2, (short) 1, 0L);
       fs.mkdirs(new Path("/tmp"), new FsPermission("777"));
 
-      DBAdapter adapter = mock(DBAdapter.class);
+      DBAdapter adapter = Mockito.mock(DBAdapter.class);
       EventApplierForTest applierForTest = new EventApplierForTest(adapter, client);
       final InotifyEventFetcher fetcher = new InotifyEventFetcher(client, adapter,
           Executors.newScheduledThreadPool(2), applierForTest);

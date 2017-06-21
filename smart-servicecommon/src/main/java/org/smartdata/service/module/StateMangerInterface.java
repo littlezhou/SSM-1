@@ -17,17 +17,21 @@
  */
 package org.smartdata.service.module;
 
+import org.smartdata.AbstractService;
+import org.smartdata.SmartContext;
 import org.smartdata.metrics.FileAccessEventSource;
-import org.smartdata.service.Service;
 
 /**
  * Defines interfaces for StateManager
  */
-public interface StateMangerInterface extends Service {
+public abstract class StateMangerInterface extends AbstractService {
 
+  public StateMangerInterface(SmartContext context) {
+    super(context);
+  }
   /**
    * Provide file access events.
    * @return
    */
-  FileAccessEventSource getFileAccessEventSource();
+  public abstract FileAccessEventSource getFileAccessEventSource();
 }
