@@ -20,3 +20,10 @@ ${rootdir}: ${targetdir}/smart-data-0.1-SNAPSHOT.tar.gz
 
 ${targetdir}/smart-data-0.1-SNAPSHOT.tar.gz:
 	cd ${targetdir}/../..; mvn package -DskipTests -Pdist
+
+
+my:./lib
+	./sbin/start-smart.sh -D dfs.smart.namenode.rpcserver=hdfs://localhost:9000
+
+./lib:${rootdir}/lib
+	rm -fr ./lib; cp -r ${rootdir}/lib .
