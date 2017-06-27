@@ -246,6 +246,13 @@ public class MetaUtil {
         p.setProperty("url", url);
       }
 
+      String purl = p.getProperty("url");
+      if (purl == null || purl.length() == 0) {
+        purl = getDefaultSqliteDB(); // For testing
+        p.setProperty("url", purl);
+        LOG.warn("Database URL not specified, using " + purl);
+      }
+
       for (String key : p.stringPropertyNames()) {
         LOG.info("\t" + key + " = " + p.getProperty(key));
       }
