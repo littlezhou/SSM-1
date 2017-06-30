@@ -30,6 +30,8 @@ import org.smartdata.integration.cluster.SmartCluster;
 public class IntegrationTestBase {
   public static final String ROOT = "/smart/api/v1";
   public static final String RULEROOT = ROOT + "/rules";
+  public static final String CMDLETROOT = ROOT + "/cmdlets";
+  public static final String PRIMCLUSTERROOT = ROOT + "/cluster/primary";
 
   private static SmartCluster cluster;
   private static SmartConf conf;
