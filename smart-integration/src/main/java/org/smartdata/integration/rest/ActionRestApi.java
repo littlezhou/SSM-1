@@ -52,11 +52,17 @@ public class ActionRestApi extends RestApiBase {
     return ret;
   }
 
-  public static Map getActionInfo(long aid) {
+  public static Map getActionInfoMap(long aid) {
     Response actionInfo = RestAssured.get(ACTIONROOT + "/" + aid + "/info");
     JsonPath actionInfoPath = new JsonPath(actionInfo.asString());
     Map actionInfoMap = actionInfoPath.getMap("body");
     return actionInfoMap;
+  }
+
+  public static JsonPath getActionInfo(long aid) {
+    Response resp = RestAssured.get(ACTIONROOT + "/" + aid + "/info");
+    resp.then().body("status", Matchers.equalTo("OK"));
+    return resp.jsonPath().setRoot("body");
   }
 
   /**

@@ -100,7 +100,7 @@ public class TestDBUtil {
         }
       }
       File file = new File(dbFile);
-      file.deleteOnExit();
+      //file.deleteOnExit();
     }
   }
 
