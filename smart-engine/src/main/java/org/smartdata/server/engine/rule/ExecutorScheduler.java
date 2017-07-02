@@ -18,10 +18,19 @@
 package org.smartdata.server.engine.rule;
 
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.smartdata.rule.ScheduleInfo;
 import org.smartdata.rule.parser.TimeBasedScheduleInfo;
+import org.smartdata.rule.triggers.RuleEvent;
+import org.smartdata.rule.triggers.RuleEvent.EventType;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +39,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class ExecutorScheduler {
   private ScheduledExecutorService service;
+  private BlockingQueue<ExecuteRuleJob> taskQueue = new LinkedBlockingDeque<>();
+  private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+
+  private ListMultimap<String, RuleExecutor> mapEventRules =
+      ArrayListMultimap.create();
 
   public ExecutorScheduler(int numThreads) {
     service = Executors.newScheduledThreadPool(numThreads);
@@ -49,7 +63,10 @@ public class ExecutorScheduler {
   }
 
   // TODO: to be defined
-  public void addEventTask() {
+  public void addEventTask(Set<EventType> events, RuleExecutor executor) {
+  }
+
+  public void onEvent(RuleEvent event) {
   }
 
   public void shutdown() {

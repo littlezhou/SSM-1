@@ -57,7 +57,7 @@ public class RuleManager extends AbstractService {
   private ConcurrentHashMap<Long, RuleInfoRepo> mapRules =
       new ConcurrentHashMap<>();
 
-  public ExecutorScheduler execScheduler;
+  private ExecutorScheduler execScheduler;
 
   public RuleManager(ServerContext context,
       StatesManager statesManager, CmdletManager cmdletManager) {
