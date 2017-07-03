@@ -30,7 +30,7 @@ import static org.smartdata.integration.rest.RuleRestApi.waitRuleTriggered;
 
 public class TestCaseMoveData extends IntegrationTestBase {
 
-  @Test(timeout = 120000)
+  @Test(timeout = 180000)
   public void testOneSsdHotData() throws Exception {
     String file = "/testOneSsd/testOneSsdFile";
     waitCmdletComplete(submitCmdlet("write -length 1024 -file " + file));
@@ -51,7 +51,7 @@ public class TestCaseMoveData extends IntegrationTestBase {
     }
   }
 
-  @Test(timeout = 120000)
+  @Test(timeout = 180000)
   public void testArchiveColdData() throws Exception {
     String file = "/testArchive/testArchiveFile";
     waitCmdletComplete(submitCmdlet("write -length 1024 -file " + file));
