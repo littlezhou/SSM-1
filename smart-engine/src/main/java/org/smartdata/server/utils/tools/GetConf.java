@@ -27,7 +27,7 @@ public class GetConf {
   private static final String USAGE =
       "Usage: GetConf <Option>\n"
       + "\tOption can be:\n"
-      + "\t  HazelcastMembers  Print members in hazelcast.xml\n"
+      + "\t  SmartServers      Print hosts of SmartServer (members in hazelcast.xml)\n"
       + "\t  Help              Print this usage\n";
 
   public static int getHazelcastMembers(PrintStream ps) throws Exception {
@@ -35,19 +35,14 @@ public class GetConf {
         new ClasspathXmlConfig(HazelcastInstanceProvider.CONFIG_FILE);
     try {
       List<String> members = conf.getNetworkConfig().getJoin().getTcpIpConfig().getMembers();
-      int found = 0;
-      for (String m : members) {
-        if (m.length() != 0) {
-          found++;
-          ps.println(m);
-        }
-      }
-
-      if (found == 0) {
-        ps.println("No valid Hazelcast Members found");
+      if (members == null || members.size() == 0) {
+        ps.println("No valid SmartServer configured in "
+            + HazelcastInstanceProvider.CONFIG_FILE);
         return 2;
       }
-
+      for (String m : members) {
+        ps.println(m);
+      }
       return 0;
     } catch (NullPointerException e) {
       ps.println("Hazelcast Members not found in "
@@ -65,14 +60,15 @@ public class GetConf {
     int ret = 1;
 
     try {
-      if (args[0].equalsIgnoreCase("HazelcastMembers")) {
+      if (args[0].equalsIgnoreCase("SmartServers")) {
         ret = getHazelcastMembers(System.out);
       } else if (args[0].equalsIgnoreCase("Help")) {
         System.out.println(USAGE);
         ret = 0;
+      } else {
+        System.out.println("Unknown command option " + args[0]);
       }
     } catch (Throwable t) {
-      //t.printStackTrace();
       System.out.println(t.getMessage());
     }
     System.exit(ret);

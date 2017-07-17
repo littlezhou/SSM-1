@@ -17,23 +17,9 @@
 # limitations under the License.
 #
 
-function command_class_name() {
-  local subcmd=$1
-  shift
+Usage="smart --config <config dir> [--worker] <command> <subcommand> <command args>"
 
-  case ${subcmd} in
-    smartserver)
-      SMART_CLASSNAME=org.smartdata.server.SmartDaemon
-    ;;
-    getconf)
-      SMART_CLASSNAME=org.smartdata.server.utils.tools.GetConf
-    ;;
-    *)
-      echo "Unkown sub command ${subcmd}"
-      exit 1;
-    ;;
-  esac
-}
+echo "$0 args = $*"
 
 bin=$(dirname "${BASH_SOURCE-$0}")
 bin=$(cd "${bin}">/dev/null; pwd)
@@ -72,10 +58,10 @@ done
 
 . "${bin}/common.sh"
 
-SUBCOMMAND=$1
+COMMAND=$1
 shift
 
-command_class_name ${SUBCOMMAND}
+command_class_name ${COMMAND}
 
 JAVA_OPTS+=" -Dsmart.log.dir=${SMART_LOG_DIR}"
 JAVA_OPTS+=" -Dsmart.log.file=SmartServer.log"
@@ -99,7 +85,6 @@ else
 fi
 
 if [[ ! -d "${SMART_LOG_DIR}" ]]; then
-  echo "Log dir doesn't exist, create ${SMART_LOG_DIR}"
   $(mkdir -p "${SMART_LOG_DIR}")
 fi
 
@@ -109,7 +94,15 @@ SMART_VARGS+=" -D smart.log.dir="${SMART_LOG_DIR}
 
 echo "$SMART_RUNNER $JAVA_OPTS -cp ${SMART_CLASSPATH} ${SMART_CLASSNAME} $@"
 
-exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" ${SMART_CLASSNAME} $@
+#exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" ${SMART_CLASSNAME} $@
+
+
+if [ -z "$DAEMON_MOD" ]; then
+  echo x
+else
+  if [ "${COMMAND}-"
+  smart_start_daemon ${SMART_PID_FILE}
+fi
 
 #
 #if [ -z "$DAEMON_MOD" ]; then

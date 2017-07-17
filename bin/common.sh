@@ -239,3 +239,32 @@ function smart_stop_daemon() {
     echo "Service not found on node '${HOSTNAME}'"
   fi
 }
+
+function init_command() {
+  local subcmd=$1
+  shift
+
+  case ${subcmd} in
+    smartserver)
+      SMART_CLASSNAME=org.smartdata.server.SmartDaemon
+      SMART_PID_FILE=/tmp/SmartServer.pid
+    ;;
+    getconf)
+      SMART_CLASSNAME=org.smartdata.server.utils.tools.GetConf
+    ;;
+    *)
+      echo "Unkown sub command ${subcmd}"
+      exit 1;
+    ;;
+  esac
+}
+
+function start_remote_services() {
+  local service=$1
+  local oper=$2
+  shift 2
+
+  init_remote_hosts ${service}
+
+
+}

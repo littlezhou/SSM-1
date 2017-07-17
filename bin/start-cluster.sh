@@ -58,7 +58,7 @@ done
 #---------------------------------------------------------
 # Start Smart Servers
 
-SMARTSERVERS=$("${SMART_HOME}/bin/smart.sh" getconf HazelcastMembers 2>/dev/null)
+SMARTSERVERS=$("${SMART_HOME}/bin/smart" getconf SmartServers 2>/dev/null)
 
 if [ "$?" != "0" ]; then
     echo "${SMARTSERVERS}"
@@ -70,10 +70,10 @@ fi
 #fi
 echo "SMARTSERVERS=" ${SMARTSERVERS}
 
-#. "${SMART_HOME}/bin/smart.sh" \
-# --workers \
-# --config "${SMART_CONF_DIR}" \
-# --hostnames "${NAMENODES}" \
-# --daemon start \
-# smartserver ${START_OPTS}
+. "${SMART_HOME}/bin/smart" \
+ --workers \
+ --config "${SMART_CONF_DIR}" \
+ --hostnames "${SMARTSERVERS}" \
+ --daemon start \
+ smartserver ${START_OPTS}
 
