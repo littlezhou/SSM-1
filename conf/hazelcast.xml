@@ -7,7 +7,9 @@
             <multicast enabled="false">
             </multicast>
             <tcp-ip enabled="true">
-                <member>localhost</member>
+                <!--<member>localhost</member>-->
+                <!--<member>ABChost</member>-->
+                <!--<member></member>-->
             </tcp-ip>
         </join>
     </network>
