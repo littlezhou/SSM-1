@@ -17,15 +17,18 @@
 # limitations under the License.
 #
 
-Usage="smart --config <config dir> [--worker] <command> <subcommand> <command args>"
+Usage="smart --config <config dir> [--daemon] [--hosts <hostA> <hostB> --hostsend] [--daemon start|stop ] [--remote] <command> <command args>"
 
-echo "$0 args = $*"
+SCRIPT_ARGS="$*"
 
 bin=$(dirname "${BASH_SOURCE-$0}")
 bin=$(cd "${bin}">/dev/null; pwd)
 HOSTNAME=$(hostname)
 
+REMOTE_COMMAND=
 DAEMON_MOD=
+DAEMON_MOD_OP=
+REMOTE_MODE=
 SMART_VARGS=
 while [ $# != 0 ]; do
   case "$1" in
@@ -40,14 +43,32 @@ while [ $# != 0 ]; do
         export SMART_CONF_DIR="${conf_dir}"
         echo "SMART_CONF_DIR="$SMART_CONF_DIR
       fi
+      REMOTE_COMMAND+=" --config $1"
       shift
       ;;
     "--debug")
       JAVA_OPTS+=" -Xdebug -Xrunjdwp:transport=dt_socket,address=8008,server=y,suspend=y"
+      REMOTE_COMMAND+=" $1"
       shift
       ;;
     "--daemon")
-      DAEMON_MOD=1
+      REMOTE_COMMAND+=" $1 $2"
+      DAEMON_MOD=true
+      shift
+      DAEMON_MOD_OP=$1
+      shift
+      ;;
+    "--remote")
+      REMOTE_MODE=true
+      shift
+      ;;
+    "--hosts")
+      SMART_HOSTS=
+      shift
+      while [ x"$1" != x"--hostsend" ]; do
+        SMART_HOSTS+=" $1"
+        shift
+      done
       shift
       ;;
     *)
@@ -56,12 +77,14 @@ while [ $# != 0 ]; do
   esac
 done
 
-. "${bin}/common.sh"
-
+REMOTE_COMMAND+=" $@"
 COMMAND=$1
 shift
+SMART_VARGS="$@"
 
-command_class_name ${COMMAND}
+. "${bin}/common.sh"
+
+init_command ${COMMAND}
 
 JAVA_OPTS+=" -Dsmart.log.dir=${SMART_LOG_DIR}"
 JAVA_OPTS+=" -Dsmart.log.file=SmartServer.log"
@@ -92,22 +115,27 @@ SMART_VARGS+=" -D smart.conf.dir="${SMART_CONF_DIR}
 SMART_VARGS+=" -D smart.log.dir="${SMART_LOG_DIR}
 
 
-echo "$SMART_RUNNER $JAVA_OPTS -cp ${SMART_CLASSPATH} ${SMART_CLASSNAME} $@"
+#echo "$SMART_RUNNER $JAVA_OPTS -cp ${SMART_CLASSPATH} ${SMART_CLASSNAME} $@"
 
 #exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" ${SMART_CLASSNAME} $@
 
-
-if [ -z "$DAEMON_MOD" ]; then
-  echo x
+if [ x"${REMOTE_MODE}" = x"true" ]; then
+  for host in $SMART_HOSTS
+  do
+    remote_execute ${host} ${SMART_HOME}/bin/smart ${REMOTE_COMMAND}
+  done
 else
-  if [ "${COMMAND}-"
-  smart_start_daemon ${SMART_PID_FILE}
+  if [ x"${DAEMON_MOD}" = x"true" ]; then
+    case "${DAEMON_MOD_OP}" in
+      "start")
+        smart_start_daemon ${SMART_PID_FILE}
+        ;;
+      "stop")
+        smart_stop_daemon ${SMART_PID_FILE}
+        ;;
+    esac
+  else
+    local_execute
+  fi
 fi
-
-#
-#if [ -z "$DAEMON_MOD" ]; then
-#  start_smart_server
-#else
-#  smart_start_daemon ${SMART_SERVER_PID_FILE}
-#fi
-#
+exit $?

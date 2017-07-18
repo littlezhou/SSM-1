@@ -71,9 +71,9 @@ fi
 echo "SMARTSERVERS=" ${SMARTSERVERS}
 
 . "${SMART_HOME}/bin/smart" \
- --workers \
+ --remote \
  --config "${SMART_CONF_DIR}" \
- --hostnames "${SMARTSERVERS}" \
+ --hosts "${SMARTSERVERS}" --hostsend \
  --daemon start \
  smartserver ${START_OPTS}
 

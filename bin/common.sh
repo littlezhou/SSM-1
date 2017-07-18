@@ -139,21 +139,23 @@ SMART_SERVER_PID_FILE=/tmp/SmartServer.pid
 SSH_OPTIONS="-o BatchMode=yes -o StrictHostKeyChecking=no -o ConnectTimeout=10s"
 
 function start_smart_server() {
-  local servers=localhost
+  local servers=$1
+  shift
 
   if [[ "${SMART_VARGS}" =~ " -format" ]]; then
     echo "Start formatting database ..."
-    exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" $SMART_SERVER $SMART_VARGS
+    exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" $SMART_CLASSNAME $SMART_VARGS
     exit $?
   fi
 
   echo  "Starting SmartServer ..."
-  ssh ${SSH_OPTIONS} ${servers} "cd ${SMART_HOME}; ${SMART_HOME}/bin/start-smart.sh ${SMART_VARGS} --daemon"
+  ssh ${SSH_OPTIONS} ${servers} "cd ${SMART_HOME}; ${SMART_HOME}/bin/smart ${SMART_VARGS}"
 }
 
 function stop_smart_server() {
-  local servers=localhost
-  ssh ${SSH_OPTIONS} ${servers} "cd ${SMART_HOME}; ${SMART_HOME}/bin/stop-smart.sh --daemon"
+  local servers=$1
+  shift
+  ssh ${SSH_OPTIONS} ${servers} "cd ${SMART_HOME}; ${SMART_HOME}/bin/smart"
 }
 
 function smart_start_daemon() {
@@ -248,23 +250,26 @@ function init_command() {
     smartserver)
       SMART_CLASSNAME=org.smartdata.server.SmartDaemon
       SMART_PID_FILE=/tmp/SmartServer.pid
+      ALLOW_DAEMON_OPT=true
     ;;
     getconf)
       SMART_CLASSNAME=org.smartdata.server.utils.tools.GetConf
     ;;
     *)
-      echo "Unkown sub command ${subcmd}"
+      echo "Unkown command ${subcmd}"
       exit 1;
     ;;
   esac
 }
 
-function start_remote_services() {
-  local service=$1
-  local oper=$2
-  shift 2
+function remote_execute() {
+  local host=$1
+  shift
 
-  init_remote_hosts ${service}
+  echo "ssh ${SSH_OPTIONS} ${host} $@"
+  ssh ${SSH_OPTIONS} ${host} "\"$@\""
+}
 
-
+function local_execute() {
+  exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" $SMART_CLASSNAME $SMART_VARGS
 }
