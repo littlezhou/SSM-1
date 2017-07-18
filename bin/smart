@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -41,7 +41,6 @@ while [ $# != 0 ]; do
         exit 1
       else
         export SMART_CONF_DIR="${conf_dir}"
-        echo "SMART_CONF_DIR="$SMART_CONF_DIR
       fi
       REMOTE_COMMAND+=" --config $1"
       shift
@@ -122,6 +121,7 @@ SMART_VARGS+=" -D smart.log.dir="${SMART_LOG_DIR}
 if [ x"${REMOTE_MODE}" = x"true" ]; then
   for host in $SMART_HOSTS
   do
+    echo "Starting service on '${host}' ... "
     remote_execute ${host} ${SMART_HOME}/bin/smart ${REMOTE_COMMAND}
   done
 else

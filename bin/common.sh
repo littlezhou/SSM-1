@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -203,7 +203,7 @@ function start_daemon() {
     echo "ERROR: Can NOT write PID file ${pidfile}."
   fi
 
-  exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" $SMART_SERVER $SMART_VARGS
+  exec $SMART_RUNNER $JAVA_OPTS -cp "${SMART_CLASSPATH}" $SMART_CLASSNAME $SMART_VARGS
 }
 
 function smart_stop_daemon() {
@@ -266,8 +266,7 @@ function remote_execute() {
   local host=$1
   shift
 
-  echo "ssh ${SSH_OPTIONS} ${host} $@"
-  ssh ${SSH_OPTIONS} ${host} "\"$@\""
+  ssh ${SSH_OPTIONS} ${host} "$@"
 }
 
 function local_execute() {

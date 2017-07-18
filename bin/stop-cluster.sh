@@ -37,10 +37,6 @@ while [ $# != 0 ]; do
       fi
       shift
       ;;
-    "--debug")
-      DEBUG_OPT=$1
-      shift
-      ;;
     *)
       SMART_VARGS+=" $1"
       shift
@@ -51,7 +47,7 @@ done
 . "${bin}/common.sh"
 
 #---------------------------------------------------------
-# Start Smart Servers
+# Stop Smart Servers
 
 SMARTSERVERS=$("${SMART_HOME}/bin/smart" getconf SmartServers 2>/dev/null)
 
@@ -64,12 +60,12 @@ fi
 #SMARTSERVERS=$HOSTNAME
 #fi
 
-echo "Starting SmartServers on [${SMARTSERVERS}]"
+echo "Stopping SmartServers on [${SMARTSERVERS}]"
 
 . "${SMART_HOME}/bin/smart" \
  --remote \
  --config "${SMART_CONF_DIR}" \
  --hosts "${SMARTSERVERS}" --hostsend \
- --daemon start ${DEBUG_OPT} \
+ --daemon stop ${DEBUG_OPT} \
  smartserver
 
