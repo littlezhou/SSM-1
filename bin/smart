@@ -121,8 +121,13 @@ SMART_VARGS+=" -D smart.log.dir="${SMART_LOG_DIR}
 if [ x"${REMOTE_MODE}" = x"true" ]; then
   for host in $SMART_HOSTS
   do
-    echo "Starting service on '${host}' ... "
+    echo "Processing on '${host}' ... "
     remote_execute ${host} ${SMART_HOME}/bin/smart ${REMOTE_COMMAND}
+    if [ "$?" = "0" ]; then
+      echo "Processing on '${host}' completed successfully."
+    else
+      echo "ERROR: Processing on '${host}' failed."
+    fi
   done
 else
   if [ x"${DAEMON_MOD}" = x"true" ]; then

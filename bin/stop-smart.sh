@@ -63,7 +63,8 @@ done
 
 HOSTNAME=$(hostname)
 
-SMART_SERVER=org.smartdata.server.SmartDaemon
+#SMART_SERVER=org.smartdata.server.SmartDaemon
+init_command "smartserver"
 JAVA_OPTS+=" -Dsmart.log.dir=${SMART_LOG_DIR}"
 
 addJarInDir "${SMART_HOME}/smart-server/target/lib"
@@ -84,8 +85,4 @@ fi
 SMART_VARGS+=" -D smart.conf.dir="${SMART_CONF_DIR}
 SMART_VARGS+=" -D smart.log.dir="${SMART_LOG_DIR}
 
-if [ -z "$DAEMON_MOD" ]; then
-  stop_smart_server
-else
-  smart_stop_daemon ${SMART_SERVER_PID_FILE}
-fi
+stop_smart_server

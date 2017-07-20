@@ -63,7 +63,8 @@ done
 
 HOSTNAME=$(hostname)
 
-SMART_SERVER=org.smartdata.server.SmartDaemon
+init_command "smartserver"
+
 JAVA_OPTS+=" -Dsmart.log.dir=${SMART_LOG_DIR}"
 JAVA_OPTS+=" -Dsmart.log.file=SmartServer.log"
 
@@ -93,8 +94,4 @@ fi
 SMART_VARGS+=" -D smart.conf.dir="${SMART_CONF_DIR}
 SMART_VARGS+=" -D smart.log.dir="${SMART_LOG_DIR}
 
-if [ -z "$DAEMON_MOD" ]; then
-  start_smart_server
-else
-  smart_start_daemon ${SMART_SERVER_PID_FILE}
-fi
+start_smart_server
