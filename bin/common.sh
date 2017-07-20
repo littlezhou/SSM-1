@@ -244,6 +244,12 @@ function init_command() {
   shift
 
   case ${subcmd} in
+    formatdatabase)
+      SMART_CLASSNAME=org.smartdata.server.SmartDaemon
+      SMART_PID_FILE=/tmp/SmartServer.pid
+      ALLOW_DAEMON_OPT=true
+      SMART_VARGS+=" -format"
+      ;;
     smartserver)
       SMART_CLASSNAME=org.smartdata.server.SmartDaemon
       SMART_PID_FILE=/tmp/SmartServer.pid
