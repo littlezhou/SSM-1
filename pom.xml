@@ -70,7 +70,7 @@
         <jdk>[1.8,)</jdk>
       </activation>
       <modules>
-        <module>smart-alluxio</module>
+        <!--<module>smart-alluxio</module>-->
       </modules>
     </profile>
 

@@ -38,6 +38,8 @@ public class ActionInfo {
 
   private float progress;
 
+  private ActionDispatchState dispatchState = ActionDispatchState.PENDING;
+
   public ActionInfo() {
   }
 
@@ -156,6 +158,14 @@ public class ActionInfo {
 
   public void setProgress(float progress) {
     this.progress = progress;
+  }
+
+  public ActionDispatchState getDispatchState() {
+    return dispatchState;
+  }
+
+  public void setDispatchState(ActionDispatchState dispatchState) {
+    this.dispatchState = dispatchState;
   }
 
   @Override
