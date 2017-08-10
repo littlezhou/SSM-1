@@ -163,6 +163,16 @@ public class CmdletManager extends AbstractService {
 
   public long submitCmdlet(CmdletDescriptor cmdletDescriptor) throws IOException {
     LOG.debug(String.format("Received Cmdlet -> [ %s ]", cmdletDescriptor.getCmdletString()));
+
+    for (int index = 0; index < cmdletDescriptor.actionSize(); index++) {
+      String actionName = cmdletDescriptor.getActionName(index);
+      if (!ActionRegistry.registeredAction(actionName)) {
+        throw new IOException(
+            String.format("Submit Cmdlet %s error! Action '%s' is not supported!",
+                cmdletDescriptor.getCmdletString(), actionName));
+      }
+    }
+
     long submitTime = System.currentTimeMillis();
     CmdletInfo cmdletInfo =
       new CmdletInfo(
@@ -175,12 +185,6 @@ public class CmdletManager extends AbstractService {
     List<ActionInfo> actionInfos = createActionInfos(cmdletDescriptor, cmdletInfo.getCid());
     for (ActionInfo actionInfo : actionInfos) {
       cmdletInfo.addAction(actionInfo.getActionId());
-    }
-    for (int index = 0; index < cmdletDescriptor.actionSize(); index++) {
-      if (!ActionRegistry.registeredAction(cmdletDescriptor.getActionName(index))) {
-        throw new IOException(
-          String.format("Submit Cmdlet %s error! Action names are not correct!", cmdletInfo));
-      }
     }
 
     Set<String> filesLocked = lockMovefileActionFiles(actionInfos);
@@ -286,25 +290,6 @@ public class CmdletManager extends AbstractService {
       }
     }
     return result;
-  }
-
-  public List<CmdletInfo> listCmdletsInfo(long rid) throws IOException {
-    Map<Long, CmdletInfo> result = new HashMap<>();
-    try {
-      String ridCondition = rid == -1 ? null : String.format("= %d", rid);
-      for (CmdletInfo info : metaStore.getCmdletsTableItem(null, ridCondition, null)) {
-        result.put(info.getCid(), info);
-      }
-    } catch (MetaStoreException e) {
-      LOG.error("List CmdletInfo from DB error! Conditions rid {}", rid, e);
-      throw new IOException(e);
-    }
-    for (CmdletInfo info : idToCmdlets.values()) {
-      if (info.getRid() == rid) {
-        result.put(info.getCid(), info);
-      }
-    }
-    return Lists.newArrayList(result.values());
   }
 
   public void activateCmdlet(long cid) throws IOException {
