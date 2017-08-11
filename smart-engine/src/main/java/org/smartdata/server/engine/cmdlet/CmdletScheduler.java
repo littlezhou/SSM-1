@@ -17,20 +17,21 @@
  */
 package org.smartdata.server.engine.cmdlet;
 
-import org.smartdata.model.ActionInfo;
+import org.smartdata.model.CmdletInfo;
 
-public interface ActionScheduler {
-  void onCreateAction(ActionInfo actionInfo);
+import java.io.IOException;
+import java.util.List;
 
-  void onDispatchAction(ActionInfo actionInfo);
+public interface CmdletScheduler {
+  void initScheduler();
 
-  void postDispatchAction(ActionInfo actionInfo);
+  void onCreateCmdlet(CmdletInfo cmdletInfo) throws IOException;
 
-  void onActionStarted(ActionInfo actionInfo);
+  List<Cmdlet> scheduleCmdlet(List<Cmdlet> cmdlet);
 
-  void onActionFinished(ActionInfo actionInfo);
+  List<Cmdlet> scheduleCmdlet(Cmdlet cmdlet);
 
-  void onActionStatusUpdate();
+  void onActionStatusMessage();
 
-  void onActionStatusReport();
+  void stopScheduler();
 }

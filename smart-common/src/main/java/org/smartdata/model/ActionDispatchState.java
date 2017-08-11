@@ -15,22 +15,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.engine.cmdlet;
+package org.smartdata.model;
 
-import org.smartdata.model.ActionInfo;
+public enum ActionDispatchState {
+  PENDING(0),
+  READ_FOR_DISPATCH(1),
+  DISPATCHED(2);
 
-public interface ActionScheduler {
-  void onCreateAction(ActionInfo actionInfo);
+  private int value;
 
-  void onDispatchAction(ActionInfo actionInfo);
+  ActionDispatchState(int value) {
+    this.value = value;
+  }
 
-  void postDispatchAction(ActionInfo actionInfo);
+  public int getValue() {
+    return value;
+  }
 
-  void onActionStarted(ActionInfo actionInfo);
-
-  void onActionFinished(ActionInfo actionInfo);
-
-  void onActionStatusUpdate();
-
-  void onActionStatusReport();
+  public static ActionDispatchState fromValue(int value) {
+    for (ActionDispatchState s : ActionDispatchState.values()) {
+      if (s.getValue() == value) {
+        return s;
+      }
+    }
+    return null;
+  }
 }
