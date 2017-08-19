@@ -171,7 +171,7 @@ public class MoverProcessor {
       MLocation ml = locations.get(i);
       final Source source = storages.getSource(ml);
       if (ml.getStorageType().equals(t) && source != null) {
-        // try to schedule one replica move.
+        // try to onSchedule one replica move.
         if (scheduleMoveReplica(db, source, Arrays.asList(diff.expected.get(i)))) {
           needMove = true;
         }

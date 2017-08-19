@@ -15,17 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.metastore;
+package org.smartdata.hdfs.metric.fetcher;
 
-import org.smartdata.AbstractService;
-import org.smartdata.SmartContext;
-import org.smartdata.model.action.ActionScheduler;
+public class MoveSchedulerInfo {
+  private int maxConcurrentFiles;
+  private int maxConcurrentBlockMovesGlobal;
+  private int maxConcurrentBlockMovesPerFile;
+  private int maxConcurrentBlockMovesPerNode;
 
-public abstract class ActionSchedulerService extends AbstractService implements ActionScheduler {
-  private MetaStore metaStore;
+  private int concurrentFiles;
+  private int concurrentBlockMovesGlobal;
 
-  public ActionSchedulerService(SmartContext context, MetaStore metaStore) {
-    super(context);
-    this.metaStore = metaStore;
-  }
+  private long totalKBytesScheduled;
 }

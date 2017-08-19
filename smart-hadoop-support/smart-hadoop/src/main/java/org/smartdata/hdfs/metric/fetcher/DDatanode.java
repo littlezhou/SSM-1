@@ -87,7 +87,7 @@ public class DDatanode {
     return true;
   }
 
-  /** Check if the node can schedule more blocks to move */
+  /** Check if the node can onSchedule more blocks to move */
   synchronized boolean isPendingQNotFull() {
     return pendings.size() < maxConcurrentMoves;
   }

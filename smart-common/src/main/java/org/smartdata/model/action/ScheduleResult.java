@@ -17,15 +17,8 @@
  */
 package org.smartdata.model.action;
 
-import org.smartdata.model.LaunchAction;
-
-import java.util.List;
-
-public interface ActionPreProcessor {
-
-  List<String> getSupportedActions();
-
-  void beforeExecution(LaunchAction action);
-
-  void afterExecution(LaunchAction action);
+public enum ScheduleResult {
+  SUCCESS,  // OK for dispatch
+  RETRY,    // Need re-schedule later
+  FAIL      //
 }

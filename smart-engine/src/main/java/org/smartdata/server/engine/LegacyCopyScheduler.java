@@ -279,7 +279,7 @@ public class LegacyCopyScheduler extends AbstractService {
         addToPending();
         enQueue();
       } catch (IOException | MetaServiceException | ParseException e) {
-        LOG.error("Disaster Recovery Manager schedule error", e);
+        LOG.error("Disaster Recovery Manager onSchedule error", e);
       }
     }
   }

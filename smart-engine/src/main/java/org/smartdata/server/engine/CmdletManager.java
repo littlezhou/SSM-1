@@ -43,7 +43,7 @@ import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.server.engine.cmdlet.CmdletDispatcher;
 import org.smartdata.server.engine.cmdlet.CmdletExecutorService;
 import org.smartdata.metastore.ActionSchedulerService;
-import org.smartdata.model.action.ActionPreProcessor;
+import org.smartdata.model.action.ActionScheduler;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.server.engine.cmdlet.message.LaunchCmdlet;
 
@@ -52,6 +52,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -79,13 +80,14 @@ public class CmdletManager extends AbstractService {
   private AtomicLong maxActionId;
   private AtomicLong maxCmdletId;
 
-  private Queue<CmdletInfo> pendingCmdlet;
+  private List<Long> pendingCmdlet;
+  private Queue<Long> scheduledCmdlet;
   private List<Long> runningCmdlets;
   private Map<Long, CmdletInfo> idToCmdlets;
   private Map<Long, ActionInfo> idToActions;
   private Map<String, Long> fileLocks;
-  private ListMultimap<String, ActionPreProcessor> preExecuteProcessor = ArrayListMultimap.create();
-  private List<ActionSchedulerService> preProcessServices = new ArrayList<>();
+  private ListMultimap<String, ActionScheduler> schedulers = ArrayListMultimap.create();
+  private List<ActionSchedulerService> schedulerServices = new ArrayList<>();
 
   public CmdletManager(ServerContext context) {
     super(context);
@@ -94,7 +96,8 @@ public class CmdletManager extends AbstractService {
     this.executorService = Executors.newSingleThreadScheduledExecutor();
     this.dispatcher = new CmdletDispatcher(context, this);
     this.runningCmdlets = new ArrayList<>();
-    this.pendingCmdlet = new LinkedBlockingQueue<>();
+    this.pendingCmdlet = new LinkedList<>();
+    this.scheduledCmdlet = new LinkedBlockingQueue<>();
     this.idToCmdlets = new ConcurrentHashMap<>();
     this.idToActions = new ConcurrentHashMap<>();
     this.fileLocks = new ConcurrentHashMap<>();
@@ -111,14 +114,14 @@ public class CmdletManager extends AbstractService {
       maxActionId = new AtomicLong(metaStore.getMaxActionId());
       maxCmdletId = new AtomicLong(metaStore.getMaxCmdletId());
 
-      preProcessServices = AbstractServiceFactory.createActionSchedulerServices(
+      schedulerServices = AbstractServiceFactory.createActionSchedulerServices(
           getContext().getConf(), getContext(), metaStore, false);
 
-      for (ActionSchedulerService s : preProcessServices) {
+      for (ActionSchedulerService s : schedulerServices) {
         s.init();
         List<String> actions = s.getSupportedActions();
         for (String a : actions) {
-          preExecuteProcessor.put(a, s);
+          schedulers.put(a, s);
         }
       }
     } catch (Exception e) {
@@ -131,15 +134,15 @@ public class CmdletManager extends AbstractService {
   public void start() throws IOException {
     executorService.scheduleAtFixedRate(
         new ScheduleTask(this.dispatcher), 1000, 1000, TimeUnit.MILLISECONDS);
-    for (ActionSchedulerService s : preProcessServices) {
+    for (ActionSchedulerService s : schedulerServices) {
       s.start();
     }
   }
 
   @Override
   public void stop() throws IOException {
-    for (int i = preProcessServices.size() - 1; i >=0 ; i--) {
-      preProcessServices.get(i).stop();
+    for (int i = schedulerServices.size() - 1; i >=0 ; i--) {
+      schedulerServices.get(i).stop();
     }
     executorService.shutdown();
     dispatcher.shutDownExcutorServices();
@@ -199,7 +202,7 @@ public class CmdletManager extends AbstractService {
       }
       throw new IOException(e);
     }
-    pendingCmdlet.add(cmdletInfo);
+    pendingCmdlet.add(cmdletInfo.getCid());
     idToCmdlets.put(cmdletInfo.getCid(), cmdletInfo);
     for (ActionInfo actionInfo : actionInfos) {
       idToActions.put(actionInfo.getActionId(), actionInfo);
@@ -236,6 +239,9 @@ public class CmdletManager extends AbstractService {
 
     fileLocks.putAll(filesToLock);
     return filesToLock.keySet();
+  }
+
+  public void scheduleCmdlet() throws IOException {
   }
 
   public LaunchCmdlet getNextCmdletToRun() throws IOException {
@@ -313,8 +319,8 @@ public class CmdletManager extends AbstractService {
   public void disableCmdlet(long cid) throws IOException {
     if (idToCmdlets.containsKey(cid)) {
       CmdletInfo info = idToCmdlets.get(cid);
-      if (pendingCmdlet.contains(info)) {
-        pendingCmdlet.remove(info);
+      if (pendingCmdlet.contains(cid)) {
+        pendingCmdlet.remove(cid);
         info.setState(CmdletState.DISABLED);
         this.cmdletFinished(cid);
       }
@@ -587,8 +593,8 @@ public class CmdletManager extends AbstractService {
 
   public void cmdletPreExecutionProcess(LaunchCmdlet cmdlet) {
     for (LaunchAction action : cmdlet.getLaunchActions()) {
-      for (ActionPreProcessor p : preExecuteProcessor.get(action.getActionType())) {
-        p.beforeExecution(action);
+      for (ActionScheduler p : schedulers.get(action.getActionType())) {
+        p.onSchedule(action);
       }
     }
   }

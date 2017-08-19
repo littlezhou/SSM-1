@@ -67,8 +67,8 @@ public class MoverExecutor {
   }
 
   /**
-   * Execute a move action providing the schedule plan
-   * @param plan the schedule plan of mover
+   * Execute a move action providing the onSchedule plan
+   * @param plan the onSchedule plan of mover
    * @return number of failed moves
    * @throws Exception
    */
@@ -77,7 +77,7 @@ public class MoverExecutor {
 
     moveExecutor = Executors.newFixedThreadPool(maxConcurrentMoves);
 
-    // TODO: currently just retry failed moves, may need advanced schedule
+    // TODO: currently just retry failed moves, may need advanced onSchedule
     for (int retryTimes = 0; retryTimes < maxRetryTimes; retryTimes ++) {
       for (final ReplicaMove replicaMove : allMoves) {
         moveExecutor.execute(new Runnable() {
