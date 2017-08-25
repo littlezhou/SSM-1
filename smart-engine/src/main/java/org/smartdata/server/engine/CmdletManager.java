@@ -202,10 +202,13 @@ public class CmdletManager extends AbstractService {
       }
       throw new IOException(e);
     }
-    pendingCmdlet.add(cmdletInfo.getCid());
-    idToCmdlets.put(cmdletInfo.getCid(), cmdletInfo);
+
     for (ActionInfo actionInfo : actionInfos) {
       idToActions.put(actionInfo.getActionId(), actionInfo);
+    }
+    idToCmdlets.put(cmdletInfo.getCid(), cmdletInfo);
+    synchronized (pendingCmdlet) {
+      pendingCmdlet.add(cmdletInfo.getCid());
     }
     return cmdletInfo.getCid();
   }
@@ -242,6 +245,15 @@ public class CmdletManager extends AbstractService {
   }
 
   public void scheduleCmdlet() throws IOException {
+    int numPendings;
+    synchronized (pendingCmdlet) {
+      numPendings = pendingCmdlet.size();
+    }
+    int maxScheduled = 10;
+
+    for (int idx = 0; idx < maxScheduled; idx++) {
+
+    }
   }
 
   public LaunchCmdlet getNextCmdletToRun() throws IOException {
