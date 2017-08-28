@@ -34,6 +34,7 @@ import org.smartdata.model.ActionInfo;
 import org.smartdata.model.CmdletDescriptor;
 import org.smartdata.model.CmdletInfo;
 import org.smartdata.model.CmdletState;
+import org.smartdata.model.action.ScheduleResult;
 import org.smartdata.protocol.message.ActionFinished;
 import org.smartdata.protocol.message.ActionStarted;
 import org.smartdata.protocol.message.ActionStatus;
@@ -81,6 +82,7 @@ public class CmdletManager extends AbstractService {
   private AtomicLong maxCmdletId;
 
   private List<Long> pendingCmdlet;
+  private List<Long> schedulingCmdlet;
   private Queue<Long> scheduledCmdlet;
   private List<Long> runningCmdlets;
   private Map<Long, CmdletInfo> idToCmdlets;
@@ -97,6 +99,7 @@ public class CmdletManager extends AbstractService {
     this.dispatcher = new CmdletDispatcher(context, this);
     this.runningCmdlets = new ArrayList<>();
     this.pendingCmdlet = new LinkedList<>();
+    this.schedulingCmdlet = new LinkedList<>();
     this.scheduledCmdlet = new LinkedBlockingQueue<>();
     this.idToCmdlets = new ConcurrentHashMap<>();
     this.idToActions = new ConcurrentHashMap<>();
@@ -245,19 +248,105 @@ public class CmdletManager extends AbstractService {
   }
 
   public void scheduleCmdlet() throws IOException {
-    int numPendings;
-    synchronized (pendingCmdlet) {
-      numPendings = pendingCmdlet.size();
-    }
     int maxScheduled = 10;
 
-    for (int idx = 0; idx < maxScheduled; idx++) {
+    synchronized (pendingCmdlet) {
+      if (pendingCmdlet.size() > 0) {
+        schedulingCmdlet.addAll(pendingCmdlet);
+        pendingCmdlet.clear();
+      }
+    }
 
+    maxScheduled = maxScheduled > schedulingCmdlet.size() ?
+        schedulingCmdlet.size() : maxScheduled;
+
+    Iterator<Long> it = schedulingCmdlet.iterator();
+    while (it.hasNext()) {
+      long id = it.next();
+      CmdletInfo cmdlet = idToCmdlets.get(id);
+      synchronized (cmdlet) {
+        switch (cmdlet.getState()) {
+          case DISABLED:
+            it.remove();
+            break;
+
+          case PENDING:
+            ScheduleResult result = scheduleCmdletActions(cmdlet);
+            if (result != ScheduleResult.RETRY) {
+              it.remove();
+            }
+            if (result == ScheduleResult.SUCCESS) {
+              cmdlet.setState(CmdletState.SCHEDULED);
+              scheduledCmdlet.add(id);
+            }
+            break;
+        }
+      }
+    }
+  }
+
+  private ScheduleResult scheduleCmdletActions(CmdletInfo info) {
+    List<Long> actIds = info.getAids();
+    int idx = 0;
+    int schIdx = 0;
+    ActionInfo actionInfo;
+    List<ActionScheduler> actSchedulers;
+    ScheduleResult scheduleResult = ScheduleResult.SUCCESS;
+    for (idx = 0; idx < actIds.size(); idx++) {
+      actionInfo = idToActions.get(actIds.get(idx));
+      actSchedulers = schedulers.get(actionInfo.getActionName());
+      if (actSchedulers == null || actSchedulers.size() == 0) {
+        continue;
+      }
+
+      for (schIdx = 0; schIdx < actSchedulers.size(); schIdx++) {
+        ActionScheduler s = actSchedulers.get(schIdx);
+        scheduleResult = s.onSchedule(actionInfo);
+        if (scheduleResult != ScheduleResult.SUCCESS) {
+          break;
+        }
+      }
+
+      if (scheduleResult != ScheduleResult.SUCCESS) {
+        break;
+      }
+    }
+
+    if (scheduleResult == ScheduleResult.SUCCESS) {
+      idx--;
+      schIdx--;
+    }
+    postscheduleCmdletActions(actIds, scheduleResult, idx, schIdx);
+    return scheduleResult;
+  }
+
+  private void postscheduleCmdletActions(List<Long> actions, ScheduleResult result,
+      int lastAction, int lastScheduler) {
+    List<ActionScheduler> actSchedulers;
+    for (int aidx = lastAction; aidx >= 0 ; aidx--) {
+      ActionInfo info = idToActions.get(actions.get(aidx));
+      actSchedulers = schedulers.get(info.getActionName());
+      if (actSchedulers == null || actSchedulers.size() == 0) {
+        continue;
+      }
+      if (lastScheduler < 0) {
+        lastScheduler = actSchedulers.size() - 1;
+      }
+
+      for (int sidx = lastScheduler; sidx >= 0; sidx--) {
+        actSchedulers.get(sidx).postSchedule(info, result);
+      }
+
+      lastScheduler = -1;
     }
   }
 
   public LaunchCmdlet getNextCmdletToRun() throws IOException {
-    CmdletInfo cmdletInfo = pendingCmdlet.poll();
+    Long cmdletId = scheduledCmdlet.poll();
+    if (cmdletId == null) {
+      return null;
+    }
+    CmdletInfo cmdletInfo = idToCmdlets.get(cmdletId);
     if (cmdletInfo == null) {
       return null;
     }

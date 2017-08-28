@@ -42,6 +42,8 @@ public interface ActionScheduler {
    */
   ScheduleResult onSchedule(LaunchAction action);
 
+  void postSchedule(ActionInfo actionInfo, ScheduleResult result);
+
   /**
    *  Called just before dispatch for execution.
    *
