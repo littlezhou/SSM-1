@@ -40,7 +40,7 @@ public interface ActionScheduler {
    * @param action
    * @return
    */
-  ScheduleResult onSchedule(LaunchAction action);
+  ScheduleResult onSchedule(ActionInfo actionInfo, LaunchAction action);
 
   void postSchedule(ActionInfo actionInfo, ScheduleResult result);
 

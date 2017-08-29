@@ -84,6 +84,7 @@ public class CmdletManager extends AbstractService {
   private List<Long> pendingCmdlet;
   private List<Long> schedulingCmdlet;
   private Queue<Long> scheduledCmdlet;
+  private Map<Long, LaunchCmdlet> idToLaunchCmdlet;
   private List<Long> runningCmdlets;
   private Map<Long, CmdletInfo> idToCmdlets;
   private Map<Long, ActionInfo> idToActions;
@@ -101,6 +102,7 @@ public class CmdletManager extends AbstractService {
     this.pendingCmdlet = new LinkedList<>();
     this.schedulingCmdlet = new LinkedList<>();
     this.scheduledCmdlet = new LinkedBlockingQueue<>();
+    this.idToLaunchCmdlet = new HashMap<>();
     this.idToCmdlets = new ConcurrentHashMap<>();
     this.idToActions = new ConcurrentHashMap<>();
     this.fileLocks = new ConcurrentHashMap<>();
@@ -271,11 +273,13 @@ public class CmdletManager extends AbstractService {
             break;
 
           case PENDING:
-            ScheduleResult result = scheduleCmdletActions(cmdlet);
+            LaunchCmdlet launchCmdlet = createLaunchCmdlet(cmdlet);
+            ScheduleResult result = scheduleCmdletActions(cmdlet, launchCmdlet);
             if (result != ScheduleResult.RETRY) {
               it.remove();
             }
             if (result == ScheduleResult.SUCCESS) {
+              idToLaunchCmdlet.put(cmdlet.getCid(), launchCmdlet);
               cmdlet.setState(CmdletState.SCHEDULED);
               scheduledCmdlet.add(id);
             }
@@ -285,15 +289,17 @@ public class CmdletManager extends AbstractService {
     }
   }
 
-  private ScheduleResult scheduleCmdletActions(CmdletInfo info) {
+  private ScheduleResult scheduleCmdletActions(CmdletInfo info, LaunchCmdlet launchCmdlet) {
     List<Long> actIds = info.getAids();
     int idx = 0;
     int schIdx = 0;
     ActionInfo actionInfo;
+    LaunchAction launchAction;
     List<ActionScheduler> actSchedulers;
     ScheduleResult scheduleResult = ScheduleResult.SUCCESS;
     for (idx = 0; idx < actIds.size(); idx++) {
       actionInfo = idToActions.get(actIds.get(idx));
+      launchAction = launchCmdlet.getLaunchActions().get(idx);
       actSchedulers = schedulers.get(actionInfo.getActionName());
       if (actSchedulers == null || actSchedulers.size() == 0) {
         continue;
@@ -301,7 +307,7 @@ public class CmdletManager extends AbstractService {
 
       for (schIdx = 0; schIdx < actSchedulers.size(); schIdx++) {
         ActionScheduler s = actSchedulers.get(schIdx);
-        scheduleResult = s.onSchedule(actionInfo);
+        scheduleResult = s.onSchedule(actionInfo, launchAction);
         if (scheduleResult != ScheduleResult.SUCCESS) {
           break;
         }
@@ -341,12 +347,7 @@ public class CmdletManager extends AbstractService {
     }
   }
 
-  public LaunchCmdlet getNextCmdletToRun() throws IOException {
-    Long cmdletId = scheduledCmdlet.poll();
-    if (cmdletId == null) {
-      return null;
-    }
-    CmdletInfo cmdletInfo = idToCmdlets.get(cmdletId);
+  private LaunchCmdlet createLaunchCmdlet(CmdletInfo cmdletInfo) {
     if (cmdletInfo == null) {
       return null;
     }
@@ -358,8 +359,21 @@ public class CmdletManager extends AbstractService {
             new LaunchAction(toLaunch.getActionId(), toLaunch.getActionName(), toLaunch.getArgs()));
       }
     }
-    runningCmdlets.add(cmdletInfo.getCid());
     return new LaunchCmdlet(cmdletInfo.getCid(), launchActions);
+  }
+
+  public LaunchCmdlet getNextCmdletToRun() throws IOException {
+    Long cmdletId = scheduledCmdlet.poll();
+    if (cmdletId == null) {
+      return null;
+    }
+    CmdletInfo cmdletInfo = idToCmdlets.get(cmdletId);
+    if (cmdletInfo == null) {
+      return null;
+    }
+    LaunchCmdlet launchCmdlet = createLaunchCmdlet(cmdletInfo);
+    runningCmdlets.add(cmdletInfo.getCid());
+    return launchCmdlet;
   }
 
   public CmdletInfo getCmdletInfo(long cid) throws IOException {
@@ -452,6 +466,7 @@ public class CmdletManager extends AbstractService {
       unLockFileIfNeeded(actionInfo);
     }
     flushActionInfos(removed);
+    idToLaunchCmdlet.remove(cmdletId);
   }
 
   private void unLockFileIfNeeded(ActionInfo actionInfo) {
@@ -695,7 +710,7 @@ public class CmdletManager extends AbstractService {
   public void cmdletPreExecutionProcess(LaunchCmdlet cmdlet) {
     for (LaunchAction action : cmdlet.getLaunchActions()) {
       for (ActionScheduler p : schedulers.get(action.getActionType())) {
-        p.onSchedule(action);
+        p.onPreDispatch(action);
       }
     }
   }

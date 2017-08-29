@@ -100,7 +100,7 @@ public class MoverPreProcessService extends ActionSchedulerService {
     return actions;
   }
 
-  public ScheduleResult onSchedule(LaunchAction action) {
+  public ScheduleResult onSchedule(ActionInfo actionInfo, LaunchAction action) {
     if (!actions.contains(action.getActionType())) {
       return ScheduleResult.SUCCESS;
     }
@@ -133,6 +133,9 @@ public class MoverPreProcessService extends ActionSchedulerService {
       LOG.error("Exception while processing " + action, e);
       return ScheduleResult.FAIL;
     }
+  }
+
+  public void postSchedule(ActionInfo actionInfo, ScheduleResult result) {
   }
 
   public void onPreDispatch(LaunchAction action) {
