@@ -259,11 +259,8 @@ public class CmdletManager extends AbstractService {
       }
     }
 
-    maxScheduled = maxScheduled > schedulingCmdlet.size() ?
-        schedulingCmdlet.size() : maxScheduled;
-
     Iterator<Long> it = schedulingCmdlet.iterator();
-    while (it.hasNext()) {
+    while (maxScheduled > 0 && it.hasNext()) {
       long id = it.next();
       CmdletInfo cmdlet = idToCmdlets.get(id);
       synchronized (cmdlet) {
@@ -283,6 +280,7 @@ public class CmdletManager extends AbstractService {
               cmdlet.setState(CmdletState.SCHEDULED);
               scheduledCmdlet.add(id);
             }
+            maxScheduled--;
             break;
         }
       }
@@ -363,6 +361,9 @@ public class CmdletManager extends AbstractService {
   }
 
   public LaunchCmdlet getNextCmdletToRun() throws IOException {
+    if (scheduledCmdlet.size() == 0) {
+      scheduleCmdlet();
+    }
     Long cmdletId = scheduledCmdlet.poll();
     if (cmdletId == null) {
       return null;
@@ -371,7 +372,7 @@ public class CmdletManager extends AbstractService {
     if (cmdletInfo == null) {
       return null;
     }
-    LaunchCmdlet launchCmdlet = createLaunchCmdlet(cmdletInfo);
+    LaunchCmdlet launchCmdlet = idToLaunchCmdlet.get(cmdletId);
     runningCmdlets.add(cmdletInfo.getCid());
     return launchCmdlet;
   }
@@ -434,11 +435,20 @@ public class CmdletManager extends AbstractService {
   public void disableCmdlet(long cid) throws IOException {
     if (idToCmdlets.containsKey(cid)) {
       CmdletInfo info = idToCmdlets.get(cid);
-      if (pendingCmdlet.contains(cid)) {
-        pendingCmdlet.remove(cid);
+      synchronized (info) {
         info.setState(CmdletState.DISABLED);
-        this.cmdletFinished(cid);
       }
+      synchronized (pendingCmdlet) {
+        if (pendingCmdlet.contains(cid)) {
+          pendingCmdlet.remove(cid);
+          this.cmdletFinished(cid);
+        }
+      }
+
+      if (scheduledCmdlet.contains(cid)) {
+        scheduledCmdlet.remove(cid);
+      }
+
       // Wait status update from status reporter, so need to update to MetaStore
       if (runningCmdlets.contains(cid)) {
         dispatcher.stop(cid);
@@ -607,11 +617,11 @@ public class CmdletManager extends AbstractService {
   private void onActionFinished(ActionFinished finished) throws IOException, ActionException {
     if (idToActions.containsKey(finished.getActionId())) {
       ActionInfo actionInfo = idToActions.get(finished.getActionId());
+      actionInfo.setProgress(1.0F);
       actionInfo.setFinished(true);
       actionInfo.setFinishTime(finished.getTimestamp());
       actionInfo.setResult(finished.getResult());
       actionInfo.setLog(finished.getLog());
-      actionInfo.setProgress(1.0F);
       unLockFileIfNeeded(actionInfo);
       if (finished.getThrowable() != null) {
         actionInfo.setSuccessful(false);
