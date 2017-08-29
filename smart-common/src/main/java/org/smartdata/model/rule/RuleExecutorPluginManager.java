@@ -17,25 +17,36 @@
  */
 package org.smartdata.model.rule;
 
-import org.smartdata.model.RuleInfo;
-
+import java.util.ArrayList;
 import java.util.List;
 
-public interface RuleExecutorPlugin {
-  /**
-   * Called just before rule executor begin to execute rule.
-   *
-   * @param ruleInfo
-   * @param tResult
-   * @return continue this execution if true.
-   */
-  boolean preExecution(RuleInfo ruleInfo, TranslateResult tResult);
+public class RuleExecutorPluginManager {
+  private static final RuleExecutorPluginManager inst = new RuleExecutorPluginManager();
 
-  /**
-   * Called after rule condition checked.
-   *
-   * @param objects the result of checking rule condition.
-   * @return object list that will be used for Cmdlet submission.
-   */
-  List<String> preSubmitCmdlet(RuleInfo ruleInfo, List<String> objects);
+  private static List<RuleExecutorPlugin> plugins = new ArrayList<>();
+
+  private RuleExecutorPluginManager() {
+  }
+
+  public static RuleExecutorPluginManager getInstance() {
+    return inst;
+  }
+
+  public synchronized static void addPlugin(RuleExecutorPlugin plugin) {
+    if (!plugins.contains(plugin)) {
+      plugins.add(plugin);
+    }
+  }
+
+  public synchronized static void deletePlugin(RuleExecutorPlugin plugin) {
+    if (plugins.contains(plugin)) {
+      plugins.remove(plugin);
+    }
+  }
+
+  public static List<RuleExecutorPlugin> getPlugins() {
+    List<RuleExecutorPlugin> copy = new ArrayList<>();
+    copy.addAll(plugins);
+    return copy;
+  }
 }
