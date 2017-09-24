@@ -1,3 +1,39 @@
+Smart Storage Management 1.2.0
+==================
+
+Highlights:
+------------------
+1. Asynchronous data sync between HDFS clusters. This is the first stage of SSM Cluster Disaster Recovery solution. Sync operations can be triggered in a few seconds after changes happened in the source cluster. Both file content (incremental sync) and metadata are synced.
+2. Action scheduler and rule plugin mechanism support. Interfaces provided for user to control the processing of action and rule.
+3. Web UI refined. Improves the interactive experience and provides more specific metrics for scenarios like data disaster recovery and movement of data with different temperatures.
+
+Change log:
+------------------
+- #1155, Fix list cached files failure
+- Fix a deadlock caused by meta
+- #1126, Fix slow when loading helper web page
+- Create support-new-action-guide.md
+- #1119, Refine Mover progress report (#1121)
+- #1127，Refine 'Actions' and 'Cluster' web UI
+- #1128, Data throttling for file move action
+- #1109, Upgrade Kerby version to v1.0.1
+- #1107, Fix random failure of TestActionRestApi
+- #1105, Fix action progress data error issue
+- #1095, Namespace not sync after restart SSM
+- Add list file actions for mover and copy
+- Remove duplicate actions
+- Add mover page to list movers by rule
+- List Move ans Sync rule restful api
+- Add list actions by rid
+- #1030 Disable smartnotebook broadcast paragraph
+- Add listActionsByType Restful API support
+- Add metastore support for listing actions by type
+- #1022, Fix ActionInfo been modified unexpectedly issue
+- #1015, Add interface to impact the execution of rules
+- #920 Store datanodeinfo fetched into metastore
+- #1011, Add action scheduler interface
+- Avoid fetching the name space if possible when start SSM server
+
 Smart Storage Management 1.1.0
 ==================
 
