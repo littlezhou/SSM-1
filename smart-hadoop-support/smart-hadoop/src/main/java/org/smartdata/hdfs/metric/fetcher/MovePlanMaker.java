@@ -22,7 +22,6 @@ import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
-import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.hdfs.protocol.HdfsLocatedFileStatus;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
@@ -33,13 +32,13 @@ import org.apache.hadoop.net.NetworkTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.hdfs.CompatibilityHelperLoader;
-import org.smartdata.hdfs.scheduler.MovePlanStatistics;
-import org.smartdata.model.action.FileMovePlan;
 import org.smartdata.hdfs.action.move.DBlock;
 import org.smartdata.hdfs.action.move.MLocation;
 import org.smartdata.hdfs.action.move.Source;
 import org.smartdata.hdfs.action.move.StorageGroup;
 import org.smartdata.hdfs.action.move.StorageMap;
+import org.smartdata.hdfs.scheduler.MovePlanStatistics;
+import org.smartdata.model.action.FileMovePlan;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -108,17 +107,11 @@ public class MovePlanMaker {
    */
   public synchronized FileMovePlan processNamespace(Path targetPath) throws IOException {
     schedulePlan = new FileMovePlan();
-    schedulePlan.setFileName(targetPath.toUri().getPath());
-    DirectoryListing files = dfs.listPaths(targetPath.toUri().getPath(),
-      HdfsFileStatus.EMPTY_NAME, true);
-    HdfsFileStatus status = null;
-    for (HdfsFileStatus file : files.getPartialListing()) {
-      if (!file.isDir()) {
-        status = file;
-        break;
-      }
-    }
-    if (!status.isSymlink()) {
+    String filePath = targetPath.toUri().getPath();
+    schedulePlan.setFileName(filePath);
+    HdfsFileStatus status = dfs.getFileInfo(filePath);
+    schedulePlan.setDir(status.isDir());
+    if (!status.isDir()) {
       schedulePlan.setFileLength(status.getLen());
       processFile(targetPath.toUri().getPath(), (HdfsLocatedFileStatus) status);
     }
