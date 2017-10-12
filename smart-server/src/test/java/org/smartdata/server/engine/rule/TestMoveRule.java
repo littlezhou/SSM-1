@@ -21,8 +21,11 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.junit.Test;
 import org.smartdata.admin.SmartAdmin;
+import org.smartdata.model.ActionInfo;
 import org.smartdata.model.RuleState;
 import org.smartdata.server.MiniSmartClusterHarness;
+
+import java.util.List;
 
 public class TestMoveRule extends MiniSmartClusterHarness {
 
@@ -35,10 +38,21 @@ public class TestMoveRule extends MiniSmartClusterHarness {
     dfs.mkdirs(new Path("/test/dir1"));
     DFSTestUtil.createFile(dfs, new Path("/test/dir1/f1"), DEFAULT_BLOCK_SIZE * 3, (short)3, 0);
 
-    String rule = "file: path matches \"/test/*\" | allssd";
-    SmartAdmin client = new SmartAdmin(smartContext.getConf());
+    String rule = "file: path matches \"/test/dir1/*\" | allssd";
+    SmartAdmin admin = new SmartAdmin(smartContext.getConf());
 
-    long ruleId = client.submitRule(rule, RuleState.ACTIVE);
+    long ruleId = admin.submitRule(rule, RuleState.ACTIVE);
+
+    int idx = 0;
+    while (idx++ < 400) {
+      Thread.sleep(1000);
+      List<ActionInfo> infos = admin.listActionInfoOfLastActions(100);
+      System.out.println(idx + " round:");
+      for(ActionInfo info : infos) {
+        System.out.println("\t" + info);
+      }
+      System.out.println();
+    }
 
     Thread.sleep(4000);
   }

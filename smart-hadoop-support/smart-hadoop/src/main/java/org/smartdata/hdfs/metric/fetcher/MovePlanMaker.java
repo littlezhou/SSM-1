@@ -22,6 +22,7 @@ import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.Block;
 import org.apache.hadoop.hdfs.protocol.BlockStoragePolicy;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
+import org.apache.hadoop.hdfs.protocol.DirectoryListing;
 import org.apache.hadoop.hdfs.protocol.HdfsFileStatus;
 import org.apache.hadoop.hdfs.protocol.HdfsLocatedFileStatus;
 import org.apache.hadoop.hdfs.protocol.LocatedBlock;
@@ -109,11 +110,27 @@ public class MovePlanMaker {
     schedulePlan = new FileMovePlan();
     String filePath = targetPath.toUri().getPath();
     schedulePlan.setFileName(filePath);
-    HdfsFileStatus status = dfs.getFileInfo(filePath);
-    schedulePlan.setDir(status.isDir());
-    if (!status.isDir()) {
-      schedulePlan.setFileLength(status.getLen());
-      processFile(targetPath.toUri().getPath(), (HdfsLocatedFileStatus) status);
+
+    HdfsFileStatus status = null;
+    DirectoryListing files = dfs.listPaths(filePath, HdfsFileStatus.EMPTY_NAME, true);
+    HdfsFileStatus[] statuses = files.getPartialListing();
+    if (statuses == null || statuses.length == 0) {
+      throw new IOException("File '" + filePath + "' not found!");
+    }
+    for (HdfsFileStatus file : statuses) {
+      String x = file.getLocalName();
+      if (x.equals(filePath)) {
+        break;
+      }
+    }
+
+    if (status != null) {
+      // HdfsFileStatus status = dfs.getFileInfo(filePath);
+      schedulePlan.setDir(status.isDir());
+      if (!status.isDir()) {
+        schedulePlan.setFileLength(status.getLen());
+        processFile(targetPath.toUri().getPath(), (HdfsLocatedFileStatus) status);
+      }
     }
     return schedulePlan;
   }
