@@ -111,27 +111,30 @@ public class MovePlanMaker {
     String filePath = targetPath.toUri().getPath();
     schedulePlan.setFileName(filePath);
 
-    HdfsFileStatus status = null;
+    HdfsFileStatus status = dfs.getFileInfo(filePath);
+    if (status == null) {
+      throw new IOException("File '" + filePath + "' not found!");
+    }
+    if (status.isDir()) {
+      schedulePlan.setDir(true);
+      return schedulePlan;
+    }
+
     DirectoryListing files = dfs.listPaths(filePath, HdfsFileStatus.EMPTY_NAME, true);
     HdfsFileStatus[] statuses = files.getPartialListing();
     if (statuses == null || statuses.length == 0) {
       throw new IOException("File '" + filePath + "' not found!");
     }
-    for (HdfsFileStatus file : statuses) {
-      String x = file.getLocalName();
-      if (x.equals(filePath)) {
-        break;
-      }
+    if (statuses.length != 1) {
+      throw new IOException("Get '" + filePath + "' file located status error.");
     }
-
-    if (status != null) {
-      // HdfsFileStatus status = dfs.getFileInfo(filePath);
-      schedulePlan.setDir(status.isDir());
-      if (!status.isDir()) {
-        schedulePlan.setFileLength(status.getLen());
-        processFile(targetPath.toUri().getPath(), (HdfsLocatedFileStatus) status);
-      }
+    status = statuses[0];
+    if (status.isDir()) {
+      throw new IOException("Unexpected '" + filePath + "' directory located status error.");
     }
+    schedulePlan.setDir(false);
+    schedulePlan.setFileLength(status.getLen());
+    processFile(targetPath.toUri().getPath(), (HdfsLocatedFileStatus) status);
     return schedulePlan;
   }
 
