@@ -98,7 +98,6 @@ public class CmdletManager extends AbstractService {
 
     this.metaStore = context.getMetaStore();
     this.executorService = Executors.newScheduledThreadPool(2);
-    this.dispatcher = new CmdletDispatcher(context, this);
     this.runningCmdlets = new ArrayList<>();
     this.pendingCmdlet = new LinkedList<>();
     this.schedulingCmdlet = new LinkedList<>();
@@ -107,6 +106,8 @@ public class CmdletManager extends AbstractService {
     this.idToCmdlets = new ConcurrentHashMap<>();
     this.idToActions = new ConcurrentHashMap<>();
     this.fileLocks = new ConcurrentHashMap<>();
+    this.dispatcher = new CmdletDispatcher(context, this, scheduledCmdlet,
+        idToLaunchCmdlet, runningCmdlets, schedulers);
   }
 
   @VisibleForTesting
@@ -270,9 +271,8 @@ public class CmdletManager extends AbstractService {
   @Override
   public void start() throws IOException {
     LOG.info("Starting ...");
-    executorService.scheduleAtFixedRate(new ScheduleTask(), 100, 50,  TimeUnit.MILLISECONDS);
-    executorService.scheduleAtFixedRate(
-        new DispatchTask(this.dispatcher), 200, 100, TimeUnit.MILLISECONDS);
+    executorService.scheduleAtFixedRate(new ScheduleTask(), 100, 50, TimeUnit.MILLISECONDS);
+
     for (ActionSchedulerService s : schedulerServices) {
       s.start();
     }
@@ -971,39 +971,6 @@ public class CmdletManager extends AbstractService {
       } catch (IOException e) {
         LOG.error("Exception when Scheduling Cmdlet. "
             + scheduledCmdlet.size() + " cmdlets are pending for dispatch.", e);
-      }
-    }
-  }
-
-  private class DispatchTask implements Runnable {
-    private final CmdletDispatcher dispatcher;
-
-    public DispatchTask(CmdletDispatcher dispatcher) {
-      this.dispatcher = dispatcher;
-    }
-
-    @Override
-    public void run() {
-      while (dispatcher.canDispatchMore()) {
-        try {
-          LaunchCmdlet launchCmdlet = getNextCmdletToRun();
-          if (launchCmdlet == null) {
-            break;
-          } else {
-            cmdletPreExecutionProcess(launchCmdlet);
-            dispatcher.dispatch(launchCmdlet);
-          }
-        } catch (IOException e) {
-          LOG.error("Cmdlet dispatcher error", e);
-        }
-      }
-    }
-  }
-
-  public void cmdletPreExecutionProcess(LaunchCmdlet cmdlet) {
-    for (LaunchAction action : cmdlet.getLaunchActions()) {
-      for (ActionScheduler p : schedulers.get(action.getActionType())) {
-        p.onPreDispatch(action);
       }
     }
   }

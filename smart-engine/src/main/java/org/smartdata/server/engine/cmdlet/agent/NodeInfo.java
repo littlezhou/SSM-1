@@ -15,11 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.model;
+package org.smartdata.server.engine.cmdlet.agent;
 
-public enum ExecutorType {
-  NONE,  // No cmdlet execution service provided
-  LOCAL,
-  REMOTE_SSM,
-  AGENT
+import org.smartdata.model.ExecutorType;
+
+/**
+ * Represent each nodes that SSM services (SmartServers and SmartAgents) running on.
+ *
+ */
+public class NodeInfo {
+  private String hostName;
+  private String ip;
+  private String port;
+  private ExecutorType executorType;
 }

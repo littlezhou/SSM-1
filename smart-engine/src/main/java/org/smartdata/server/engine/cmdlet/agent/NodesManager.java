@@ -15,11 +15,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.model;
+package org.smartdata.server.engine.cmdlet.agent;
 
-public enum ExecutorType {
-  NONE,  // No cmdlet execution service provided
-  LOCAL,
-  REMOTE_SSM,
-  AGENT
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+/**
+ * Manage peers in SSM cluster.
+ *
+ */
+public class NodesManager {
+  static final Logger LOG = LoggerFactory.getLogger(NodesManager.class);
+
+  public List<NodeInfo> nodes;
+
+  public List<NodeInfo> getStandbySmartServers() {
+    return null;
+  }
+
+  public List<NodeInfo> getSmartAgents() {
+    return null;
+  }
+
+  public List<NodeInfo> getNodes() {
+    return nodes;
+  }
+
+  public void dispatch() {
+  }
+
 }

@@ -15,11 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.model;
+package org.smartdata.server.engine.cmdlet.agent;
 
-public enum ExecutorType {
-  NONE,  // No cmdlet execution service provided
-  LOCAL,
-  REMOTE_SSM,
-  AGENT
+import java.util.List;
+
+/**
+ * Information for cmdlet dispatching.
+ */
+public class DispatchInfo {
+  public enum Policy {
+    ANY,
+    PREFER_AGENT,
+    PREFER_LOCAL,
+    PREFER_REMOTE_SSM,
+    MUST_AGENT
+  }
+
+  private List<String> preferedNodes;
+  private List<Policy> preferedTypes;
+
+
 }

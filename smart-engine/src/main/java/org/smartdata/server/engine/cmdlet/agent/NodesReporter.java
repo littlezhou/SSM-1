@@ -15,11 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.model;
+package org.smartdata.server.engine.cmdlet.agent;
 
-public enum ExecutorType {
-  NONE,  // No cmdlet execution service provided
-  LOCAL,
-  REMOTE_SSM,
-  AGENT
+/**
+ * Interface
+ *
+ */
+public interface NodesReporter {
+  void nodeAdded();
+
+  void nodeRemoved();
 }

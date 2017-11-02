@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -241,39 +241,5 @@ public class AgentMaster {
         return false;
       }
     }
-
   }
-
-  static class AgentManager {
-
-    private final Map<ActorRef, AgentId> agents = new HashMap<>();
-    private List<ActorRef> resources = new ArrayList<>();
-    private int dispatchIndex = 0;
-
-    void addAgent(ActorRef agent, AgentId id) {
-      agents.put(agent, id);
-      resources.add(agent);
-    }
-
-    AgentId removeAgent(ActorRef agent) {
-      AgentId id = agents.remove(agent);
-      resources.remove(agent);
-      return id;
-    }
-
-    boolean hasFreeAgent() {
-      return !resources.isEmpty();
-    }
-
-    ActorRef dispatch() {
-      int id = dispatchIndex % resources.size();
-      dispatchIndex = (id + 1) % resources.size();
-      return resources.get(id);
-    }
-
-    Map<ActorRef, AgentId> getAgents() {
-      return agents;
-    }
-  }
-
 }
