@@ -26,9 +26,11 @@ public class DispatchInfo {
   public enum Policy {
     ANY,
     PREFER_AGENT,
-    PREFER_LOCAL,
     PREFER_REMOTE_SSM,
-    MUST_AGENT
+    PREFER_LOCAL,
+    MUST_AGENT,
+    MUST_REMOTE_SSM,
+    MUST_LOCAL
   }
 
   private List<String> preferedNodes;

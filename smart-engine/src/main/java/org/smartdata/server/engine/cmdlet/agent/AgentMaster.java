@@ -116,20 +116,13 @@ public class AgentMaster {
     List<AgentInfo> infos = new ArrayList<>();
     for (Map.Entry<ActorRef, AgentId> entry : agentManager.getAgents().entrySet()) {
       String location = AgentUtils.getHostPort(entry.getKey());
-      infos.add(new AgentInfo(entry.getValue().getId(), location));
+      infos.add(new AgentInfo(String.valueOf(entry.getValue().getId()), location));
     }
     return infos;
   }
 
-  public List<NodeInfo> getNodesInfo() {
-    List<NodeInfo> infos = new ArrayList<>();
-    for (Map.Entry<ActorRef, AgentId> entry : agentManager.getAgents().entrySet()) {
-      Address address = entry.getKey().path().address();
-      String location = AgentUtils.getHostPort(entry.getKey());
-      infos.add(new NodeInfo.Builder().setExecutorType(ExecutorType.AGENT)
-          .setIp(location).build());
-    }
-    return infos;
+  public int getNumAgents() {
+    return agentManager.getAgents().size();
   }
 
   @VisibleForTesting

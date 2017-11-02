@@ -25,9 +25,16 @@ import org.smartdata.model.ExecutorType;
 import org.smartdata.protocol.message.ActionStatusReport;
 import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.protocol.message.StatusReporter;
+import org.smartdata.server.engine.ActiveServerInfo;
 import org.smartdata.server.engine.CmdletManager;
+import org.smartdata.server.engine.cmdlet.agent.NodeInfo;
 import org.smartdata.server.engine.cmdlet.message.LaunchCmdlet;
+import org.w3c.dom.Node;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -48,13 +55,19 @@ public class LocalCmdletExecutorService extends CmdletExecutorService implements
   }
 
   @Override
-  public boolean isLocalService() {
+  public boolean canAcceptMore() {
     return true;
   }
 
-  @Override
-  public boolean canAcceptMore() {
-    return true;
+  public int getNumNodes() {
+    return 1;
+  }
+
+  public List<NodeInfo> getNodesInfo() {
+    // TODO: to be refined
+    List<NodeInfo> ret = new ArrayList<>(1);
+    ret.add(new ActiveServerInfo("ActiveSSMServer", "127.0.0.1"));
+    return ret;
   }
 
   @Override

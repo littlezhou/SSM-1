@@ -32,6 +32,7 @@ import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.server.cluster.HazelcastInstanceProvider;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.StandbyServerInfo;
+import org.smartdata.server.engine.cmdlet.agent.NodeInfo;
 import org.smartdata.server.engine.cmdlet.message.LaunchCmdlet;
 import org.smartdata.server.engine.cmdlet.message.StopCmdlet;
 import org.smartdata.server.utils.HazelcastUtil;
@@ -83,9 +84,17 @@ public class HazelcastExecutorService extends CmdletExecutorService {
     return infos;
   }
 
-  @Override
-  public boolean isLocalService() {
-    return false;
+  public int getNumNodes() {
+    return masterToWorkers.size();
+  }
+
+  public List<NodeInfo> getNodesInfo() {
+    List<StandbyServerInfo> infos = getStandbyServers();
+    List<NodeInfo> ret = new ArrayList<>(infos.size());
+    for (StandbyServerInfo info : infos) {
+      ret.add(info);
+    }
+    return ret;
   }
 
   @Override

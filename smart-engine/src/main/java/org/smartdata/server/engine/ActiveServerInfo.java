@@ -15,35 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartdata.server.engine.cmdlet.agent;
+package org.smartdata.server.engine;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.smartdata.server.engine.cmdlet.agent.NodeInfo;
 
-import java.util.List;
-
-/**
- * Manage peers in SSM cluster.
- *
- */
-public class NodesManager {
-  static final Logger LOG = LoggerFactory.getLogger(NodesManager.class);
-
-  public List<NodeInfo> nodes;
-
-  public List<NodeInfo> getStandbySmartServers() {
-    return null;
+public class ActiveServerInfo extends NodeInfo {
+  public ActiveServerInfo(String id, String location) {
+    super(id, location);
   }
-
-  public List<NodeInfo> getSmartAgents() {
-    return null;
-  }
-
-  public List<NodeInfo> getNodes() {
-    return nodes;
-  }
-
-  public void dispatch() {
-  }
-
 }

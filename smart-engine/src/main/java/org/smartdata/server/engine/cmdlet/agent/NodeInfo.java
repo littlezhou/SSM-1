@@ -24,78 +24,28 @@ import org.smartdata.model.ExecutorType;
  *
  */
 public class NodeInfo {
-  private String hostName;
-  private String ip;
-  private String port;
-  private ExecutorType executorType;
+  private String id;
+  private String location;
 
-  public NodeInfo(String hostName, String ip, String port, ExecutorType executorType) {
-    this.hostName = hostName;
-    this.ip = ip;
-    this.port = port;
-    this.executorType = executorType;
+  public NodeInfo(String id, String location) {
+    this.id = id;
+    this.location = location;
   }
 
-  public String getHostName() {
-    return hostName;
+  public String getId() {
+    return id;
   }
 
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public String getIp() {
-    return ip;
+  public String getLocation() {
+    return location;
   }
 
-  public void setIp(String ip) {
-    this.ip = ip;
-  }
-
-  public String getPort() {
-    return port;
-  }
-
-  public void setPort(String port) {
-    this.port = port;
-  }
-
-  public ExecutorType getExecutorType() {
-    return executorType;
-  }
-
-  public void setExecutorType(ExecutorType executorType) {
-    this.executorType = executorType;
-  }
-
-  public static class Builder {
-    private String hostName;
-    private String ip;
-    private String port;
-    private ExecutorType executorType;
-
-    public Builder setHostName(String hostName) {
-      this.hostName = hostName;
-      return this;
-    }
-
-    public Builder setIp(String ip) {
-      this.ip = ip;
-      return this;
-    }
-
-    public Builder setPort(String port) {
-      this.port = port;
-      return this;
-    }
-
-    public Builder setExecutorType(ExecutorType executorType) {
-      this.executorType = executorType;
-      return this;
-    }
-
-    public NodeInfo build() {
-      return new NodeInfo(hostName, ip, port, executorType);
-    }
+  public void setLocation(String location) {
+    this.location = location;
   }
 }
+

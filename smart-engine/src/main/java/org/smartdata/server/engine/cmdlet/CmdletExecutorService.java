@@ -19,7 +19,10 @@ package org.smartdata.server.engine.cmdlet;
 
 import org.smartdata.model.ExecutorType;
 import org.smartdata.server.engine.CmdletManager;
+import org.smartdata.server.engine.cmdlet.agent.NodeInfo;
 import org.smartdata.server.engine.cmdlet.message.LaunchCmdlet;
+
+import java.util.List;
 
 public abstract class CmdletExecutorService {
   protected CmdletManager cmdletManager;
@@ -29,8 +32,6 @@ public abstract class CmdletExecutorService {
     this.cmdletManager = cmdletManager;
     this.executorType = executorType;
   }
-
-  public abstract boolean isLocalService();
 
   public abstract boolean canAcceptMore();
 
@@ -43,4 +44,8 @@ public abstract class CmdletExecutorService {
   public ExecutorType getExecutorType() {
     return executorType;
   }
+
+  public abstract int getNumNodes();  // return number of nodes contained
+
+  public abstract List<NodeInfo> getNodesInfo();
 }

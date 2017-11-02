@@ -20,10 +20,12 @@ package org.smartdata.server.engine.cmdlet.agent;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.model.ExecutorType;
 import org.smartdata.server.engine.CmdletManager;
+import org.smartdata.server.engine.StandbyServerInfo;
 import org.smartdata.server.engine.cmdlet.CmdletExecutorService;
 import org.smartdata.server.engine.cmdlet.message.LaunchCmdlet;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AgentExecutorService extends CmdletExecutorService {
@@ -33,11 +35,6 @@ public class AgentExecutorService extends CmdletExecutorService {
   public AgentExecutorService(SmartConf conf, CmdletManager cmdletManager) throws IOException {
     super(cmdletManager, ExecutorType.AGENT);
     this.master = new AgentMaster(conf, cmdletManager);
-  }
-
-  @Override
-  public boolean isLocalService() {
-    return false;
   }
 
   @Override
@@ -62,5 +59,18 @@ public class AgentExecutorService extends CmdletExecutorService {
 
   public List<AgentInfo> getAgentInfos() {
     return master.getAgentInfos();
+  }
+
+  public int getNumNodes() {
+    return master.getNumAgents();
+  }
+
+  public List<NodeInfo> getNodesInfo() {
+    List<AgentInfo> infos = getAgentInfos();
+    List<NodeInfo> ret = new ArrayList<>(infos.size());
+    for (AgentInfo info : infos) {
+      ret.add(info);
+    }
+    return ret;
   }
 }
