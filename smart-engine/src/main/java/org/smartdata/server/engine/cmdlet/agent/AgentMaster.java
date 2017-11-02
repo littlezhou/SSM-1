@@ -119,6 +119,13 @@ public class AgentMaster {
     return infos;
   }
 
+  public List<NodeInfo> getNodesInfo() {
+    for (Map.Entry<ActorRef, AgentId> entry : agentManager.getAgents().entrySet()) {
+      Address address = entry.getKey().path().address();
+      String location = AgentUtils.getHostPort(entry.getKey());
+    }
+  }
+
   @VisibleForTesting
   ActorRef getMasterActor() {
     return master;
