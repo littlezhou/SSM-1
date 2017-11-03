@@ -84,11 +84,13 @@ public class AgentMaster {
     return agentManager.hasFreeAgent();
   }
 
-  public void launchCmdlet(LaunchCmdlet launch) {
+  public String launchCmdlet(LaunchCmdlet launch) {
     try {
-      askMaster(launch);
+      AgentId agentId = (AgentId) askMaster(launch);
+      return String.valueOf(agentId.getId());
     } catch (Exception e) {
       LOG.error("Failed to launch Cmdlet {} due to {}", launch, e.getMessage());
+      return null;
     }
   }
 
@@ -168,8 +170,6 @@ public class AgentMaster {
   }
 
   static class MasterActor extends UntypedActor {
-
-
     private final Map<Long, ActorRef> dispatches = new HashMap<>();
     private int nextAgentId = 0;
 
@@ -221,9 +221,10 @@ public class AgentMaster {
         if (agentManager.hasFreeAgent()) {
           LaunchCmdlet launch = (LaunchCmdlet) message;
           ActorRef agent = this.agentManager.dispatch();
+          AgentId agentId = this.agentManager.getAgentId(agent);
           agent.tell(launch, getSelf());
           dispatches.put(launch.getCmdletId(), agent);
-          getSender().tell("Succeed", getSelf());
+          getSender().tell(agentId, getSelf());
         }
         return true;
       } else if (message instanceof StopCmdlet) {

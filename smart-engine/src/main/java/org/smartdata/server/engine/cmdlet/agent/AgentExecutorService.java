@@ -43,8 +43,8 @@ public class AgentExecutorService extends CmdletExecutorService {
   }
 
   @Override
-  public void execute(LaunchCmdlet cmdlet) {
-    master.launchCmdlet(cmdlet);
+  public String execute(LaunchCmdlet cmdlet) {
+    return master.launchCmdlet(cmdlet);
   }
 
   @Override

@@ -66,16 +66,18 @@ public class LocalCmdletExecutorService extends CmdletExecutorService implements
   public List<NodeInfo> getNodesInfo() {
     // TODO: to be refined
     List<NodeInfo> ret = new ArrayList<>(1);
-    ret.add(new ActiveServerInfo("ActiveSSMServer", "127.0.0.1"));
+    ret.add(ActiveServerInfo.getInstance());
     return ret;
   }
 
   @Override
-  public void execute(LaunchCmdlet cmdlet) {
+  public String execute(LaunchCmdlet cmdlet) {
     try {
       this.cmdletExecutor.execute(cmdletFactory.createCmdlet(cmdlet));
+      return ActiveServerInfo.getInstance().getId();
     } catch (ActionException e) {
       LOG.error("Failed to execute cmdlet {}" , cmdlet.getCmdletId(), e);
+      return null;
     }
   }
 

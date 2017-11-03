@@ -33,8 +33,5 @@ public class DispatchInfo {
     MUST_LOCAL
   }
 
-  private List<String> preferedNodes;
   private List<Policy> preferedTypes;
-
-
 }

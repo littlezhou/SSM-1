@@ -35,7 +35,14 @@ public abstract class CmdletExecutorService {
 
   public abstract boolean canAcceptMore();
 
-  public abstract void execute(LaunchCmdlet cmdlet);
+  // TODO: to be refined
+  /**
+   * Send cmdlet to end executor for execution.
+   *
+   * @param cmdlet
+   * @return Node ID that the cmdlet been dispatched to, null if failed
+   */
+  public abstract String execute(LaunchCmdlet cmdlet);
 
   public abstract void stop(long cmdletId);
 

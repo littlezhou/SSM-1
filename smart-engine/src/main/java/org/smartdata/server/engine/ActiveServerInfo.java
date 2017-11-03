@@ -20,7 +20,16 @@ package org.smartdata.server.engine;
 import org.smartdata.server.engine.cmdlet.agent.NodeInfo;
 
 public class ActiveServerInfo extends NodeInfo {
-  public ActiveServerInfo(String id, String location) {
-    super(id, location);
+  private static ActiveServerInfo inst;
+
+  private ActiveServerInfo() {
+    super("ActiveSSMServer", "127.0.0.1");
+  }
+
+  public static ActiveServerInfo getInstance() {
+    if (inst == null) {
+      inst = new ActiveServerInfo();
+    }
+    return inst;
   }
 }

@@ -28,17 +28,21 @@ import java.util.Map;
 public class AgentManager {
 
   private final Map<ActorRef, AgentId> agents = new HashMap<>();
+  private final Map<ActorRef, NodeInfo> agentNodeInfos = new HashMap<>();
   private List<ActorRef> resources = new ArrayList<>();
   private int dispatchIndex = 0;
 
   void addAgent(ActorRef agent, AgentId id) {
     agents.put(agent, id);
     resources.add(agent);
+    String location = AgentUtils.getHostPort(agent);
+    agentNodeInfos.put(agent, new AgentInfo(String.valueOf(id.getId()), location));
   }
 
   AgentId removeAgent(ActorRef agent) {
     AgentId id = agents.remove(agent);
     resources.remove(agent);
+    agentNodeInfos.remove(agent);
     return id;
   }
 
@@ -48,11 +52,15 @@ public class AgentManager {
 
   ActorRef dispatch() {
     int id = dispatchIndex % resources.size();
-    dispatchIndex = (id + 1) % resources.size();
+    dispatchIndex++;
     return resources.get(id);
   }
 
   Map<ActorRef, AgentId> getAgents() {
     return agents;
+  }
+
+  AgentId getAgentId(ActorRef agentActorRef) {
+    return agents.get(agentActorRef);
   }
 }

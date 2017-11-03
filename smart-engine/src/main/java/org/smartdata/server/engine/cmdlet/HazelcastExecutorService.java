@@ -103,12 +103,13 @@ public class HazelcastExecutorService extends CmdletExecutorService {
   }
 
   @Override
-  public void execute(LaunchCmdlet cmdlet) {
+  public String execute(LaunchCmdlet cmdlet) {
     String[] members = masterToWorkers.keySet().toArray(new String[0]);
     String member = members[random.nextInt() % members.length];
     masterToWorkers.get(member).publish(cmdlet);
     scheduledCmdlets.get(member).add(cmdlet.getCmdletId());
     LOG.info("Executing cmdlet {} on worker {}", cmdlet.getCmdletId(), members);
+    return member;
   }
 
   @Override
