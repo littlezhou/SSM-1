@@ -19,7 +19,6 @@ package org.smartdata.server.engine.cmdlet.agent;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.actor.Address;
 import akka.actor.Props;
 import akka.actor.Terminated;
 import akka.actor.UntypedActor;
@@ -31,7 +30,6 @@ import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.conf.SmartConf;
-import org.smartdata.model.ExecutorType;
 import org.smartdata.protocol.message.StatusMessage;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster.RegisterAgent;

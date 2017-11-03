@@ -21,9 +21,6 @@ import org.junit.Test;
 import org.smartdata.server.engine.CmdletManager;
 import org.smartdata.server.engine.cmdlet.agent.messages.AgentToMaster;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent;
-import org.w3c.dom.Node;
-
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

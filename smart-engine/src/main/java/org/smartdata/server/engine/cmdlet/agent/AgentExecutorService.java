@@ -20,7 +20,6 @@ package org.smartdata.server.engine.cmdlet.agent;
 import org.smartdata.conf.SmartConf;
 import org.smartdata.model.ExecutorType;
 import org.smartdata.server.engine.CmdletManager;
-import org.smartdata.server.engine.StandbyServerInfo;
 import org.smartdata.server.engine.cmdlet.CmdletExecutorService;
 import org.smartdata.server.engine.cmdlet.message.LaunchCmdlet;
 

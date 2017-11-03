@@ -17,7 +17,6 @@
  */
 package org.smartdata.server.engine.cmdlet.agent;
 
-import org.smartdata.model.ExecutorType;
 
 /**
  * Represent each nodes that SSM services (SmartServers and SmartAgents) running on.
