@@ -18,7 +18,6 @@
 package org.smartdata.model;
 
 public enum ExecutorType {
-  NONE,  // No cmdlet execution service provided
   LOCAL,
   REMOTE_SSM,
   AGENT

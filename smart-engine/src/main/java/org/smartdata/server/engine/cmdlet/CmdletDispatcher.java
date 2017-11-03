@@ -22,17 +22,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartdata.SmartContext;
 import org.smartdata.conf.SmartConfKeys;
+import org.smartdata.model.ExecutorType;
 import org.smartdata.model.LaunchAction;
 import org.smartdata.model.action.ActionScheduler;
 import org.smartdata.server.engine.CmdletManager;
-import org.smartdata.server.engine.cmdlet.agent.DispatchInfo;
+import org.smartdata.server.engine.cmdlet.agent.CmdletDispatchPolicy;
 import org.smartdata.server.engine.cmdlet.message.LaunchCmdlet;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,7 +49,8 @@ public class CmdletDispatcher {
 
   private final ScheduledExecutorService schExecService;
 
-  private List<CmdletExecutorService> cmdExecServices;
+  private CmdletExecutorService[] cmdExecServices;
+  private int[] cmdExecSrvInsts;
   // TODO: to be refined
   private final Map<String, Integer> execCmdletSlots = new ConcurrentHashMap<>();
   private final int defaultSlots;
@@ -65,13 +67,15 @@ public class CmdletDispatcher {
     defaultSlots = smartContext.getConf().getInt(SmartConfKeys.SMART_CMDLET_EXECUTORS_KEY,
         SmartConfKeys.SMART_CMDLET_EXECUTORS_DEFAULT);
 
-    this.cmdExecServices = new ArrayList<>();
+    this.cmdExecServices = new CmdletExecutorService[ExecutorType.values().length];
+    cmdExecSrvInsts = new int[ExecutorType.values().length];
     boolean disableLocal = smartContext.getConf().getBoolean(
         SmartConfKeys.SMART_ACTION_LOCAL_EXECUTION_DISABLED_KEY,
         SmartConfKeys.SMART_ACTION_LOCAL_EXECUTION_DISABLED_DEFAULT);
     if (!disableLocal) {
-      this.cmdExecServices.add(
-          new LocalCmdletExecutorService(smartContext.getConf(), cmdletManager));
+      CmdletExecutorService exe =
+          new LocalCmdletExecutorService(smartContext.getConf(), cmdletManager);
+      registerExecutorService(exe);
     }
     this.index = 0;
 
@@ -81,7 +85,7 @@ public class CmdletDispatcher {
   }
 
   public void registerExecutorService(CmdletExecutorService executorService) {
-    this.cmdExecServices.add(executorService);
+    this.cmdExecServices[executorService.getExecutorType().ordinal()] = executorService;
   }
 
   public boolean canDispatchMore() {
@@ -94,36 +98,95 @@ public class CmdletDispatcher {
   }
 
   public void dispatch(LaunchCmdlet cmdlet) {
-    //Todo: optimize dispatching
-    if (canDispatchMore()) {
-      while (!cmdExecServices.get(index % cmdExecServices.size()).canAcceptMore()) {
-        index += 1;
-      }
-      CmdletExecutorService selected = cmdExecServices.get(index % cmdExecServices.size());
-      selected.execute(cmdlet);
-      LOG.info(
-          String.format(
-              "Dispatching cmdlet->[%s] to executor service %s",
-              cmdlet.getCmdletId(), selected.getClass()));
-      index += 1;
+    ExecutorType execType;
+    CmdletDispatchPolicy policy = cmdlet.getDispPolicy();
+    if (policy == CmdletDispatchPolicy.ANY) {
+      policy = getRoundrobinDispatchPolicy();
     }
+    index++;
+    ExecutorType[] tryOrder;
+    switch (cmdlet.getDispPolicy()) {
+      case PREFER_LOCAL:
+        execType = ExecutorType.LOCAL;
+        tryOrder = new ExecutorType[]
+            {ExecutorType.LOCAL, ExecutorType.REMOTE_SSM, ExecutorType.AGENT};
+        break;
+
+      case PREFER_REMOTE_SSM:
+        execType = ExecutorType.REMOTE_SSM;
+        tryOrder = new ExecutorType[]
+            {ExecutorType.REMOTE_SSM, ExecutorType.AGENT, ExecutorType.LOCAL};
+        break;
+
+      case PREFER_AGENT:
+        execType = ExecutorType.AGENT;
+        tryOrder = new ExecutorType[]
+            {ExecutorType.AGENT, ExecutorType.LOCAL, ExecutorType.REMOTE_SSM};
+        break;
+
+      default:
+        LOG.error("Unknown cmdlet dispatch policy. " + cmdlet);
+        return;
+    }
+
+    CmdletExecutorService selected = null;
+    for (ExecutorType etTry : tryOrder) {
+      if (cmdExecServices[etTry.ordinal()] != null) {
+        selected = cmdExecServices[etTry.ordinal()];
+        break;
+      }
+    }
+
+    if (selected == null) {
+      LOG.error("No cmdlet executor service available. " + cmdlet);
+      return;
+    }
+
+    String id = selected.execute(cmdlet);
+
+    LOG.info(
+        String.format(
+            "Dispatching cmdlet->[%s] to executor service %s : %s",
+            cmdlet.getCmdletId(), selected.getClass(), id));
   }
 
-  public void dispatch(DispatchInfo dispatchInfo, LaunchCmdlet cmdlet) {
+  private CmdletDispatchPolicy getRoundrobinDispatchPolicy() {
+    int sum = 0;
+    for (int v : cmdExecSrvInsts) {
+      sum += v;
+    }
+    CmdletDispatchPolicy[] policies = new CmdletDispatchPolicy[] {
+        CmdletDispatchPolicy.PREFER_LOCAL,
+        CmdletDispatchPolicy.PREFER_REMOTE_SSM,
+        CmdletDispatchPolicy.PREFER_AGENT
+    };
 
+    int rev = index % sum;
+    for (int i = 0; i < cmdExecSrvInsts.length; i++) {
+      if (cmdExecSrvInsts[i] > 0 && rev < cmdExecSrvInsts[i]) {
+        return policies[i];
+      } else {
+        rev -= cmdExecSrvInsts[i];
+      }
+    }
+    return policies[0]; // not reachable
   }
 
   //Todo: pick the right service to stop cmdlet
   public void stop(long cmdletId) {
     for (CmdletExecutorService service : cmdExecServices) {
-      service.stop(cmdletId);
+      if (service != null) {
+        service.stop(cmdletId);
+      }
     }
   }
 
   //Todo: move this function to a proper place
   public void shutDownExcutorServices() {
     for (CmdletExecutorService service : cmdExecServices) {
-      service.shutdown();
+      if (service != null) {
+        service.shutdown();
+      }
     }
   }
 
@@ -137,7 +200,18 @@ public class CmdletDispatcher {
     return launchCmdlet;
   }
 
+  private void upDateCmdExecSrvInsts() {
+    for (int i = 0; i < cmdExecServices.length; i++) {
+      if (cmdExecServices[i] != null) {
+        cmdExecSrvInsts[i] = cmdExecServices[i].getNumNodes();
+      } else {
+        cmdExecSrvInsts[i] = 0;
+      }
+    }
+  }
+
   private class DispatchTask implements Runnable {
+    private int roundIdx = 0;
     private final CmdletDispatcher dispatcher;
 
     public DispatchTask(CmdletDispatcher dispatcher) {
@@ -146,6 +220,14 @@ public class CmdletDispatcher {
 
     @Override
     public void run() {
+      if (!dispatcher.canDispatchMore()) {
+        return;
+      }
+
+      if (roundIdx % 30 == 0) {
+        upDateCmdExecSrvInsts();
+      }
+
       while (dispatcher.canDispatchMore()) {
         try {
           LaunchCmdlet launchCmdlet = getNextCmdletToRun();

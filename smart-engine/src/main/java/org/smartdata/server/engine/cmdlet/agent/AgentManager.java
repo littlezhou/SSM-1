@@ -21,7 +21,9 @@ import akka.actor.ActorRef;
 import org.smartdata.server.engine.cmdlet.agent.messages.MasterToAgent.AgentId;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -30,19 +32,23 @@ public class AgentManager {
   private final Map<ActorRef, AgentId> agents = new HashMap<>();
   private final Map<ActorRef, NodeInfo> agentNodeInfos = new HashMap<>();
   private List<ActorRef> resources = new ArrayList<>();
+  private List<NodeInfo> nodeInfos = new LinkedList<>();
   private int dispatchIndex = 0;
 
   void addAgent(ActorRef agent, AgentId id) {
     agents.put(agent, id);
     resources.add(agent);
     String location = AgentUtils.getHostPort(agent);
-    agentNodeInfos.put(agent, new AgentInfo(String.valueOf(id.getId()), location));
+    NodeInfo info = new AgentInfo(String.valueOf(id.getId()), location);
+    nodeInfos.add(info);
+    agentNodeInfos.put(agent, info);
   }
 
   AgentId removeAgent(ActorRef agent) {
     AgentId id = agents.remove(agent);
     resources.remove(agent);
-    agentNodeInfos.remove(agent);
+    NodeInfo info = agentNodeInfos.remove(agent);
+    nodeInfos.remove(info);
     return id;
   }
 
@@ -58,6 +64,10 @@ public class AgentManager {
 
   Map<ActorRef, AgentId> getAgents() {
     return agents;
+  }
+
+  List<NodeInfo> getNodeInfos() {
+    return nodeInfos;
   }
 
   AgentId getAgentId(ActorRef agentActorRef) {

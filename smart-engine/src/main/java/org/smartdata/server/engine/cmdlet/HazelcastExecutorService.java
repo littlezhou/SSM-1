@@ -54,6 +54,7 @@ public class HazelcastExecutorService extends CmdletExecutorService {
   private Random random;
   private Map<String, ITopic<Serializable>> masterToWorkers;
   private Map<String, Set<Long>> scheduledCmdlets;
+  private Map<String, Member> members;
   private ITopic<StatusMessage> statusTopic;
 
   public HazelcastExecutorService(CmdletManager cmdletManager) {
@@ -61,6 +62,7 @@ public class HazelcastExecutorService extends CmdletExecutorService {
     this.random = new Random();
     this.scheduledCmdlets = new HashMap<>();
     this.masterToWorkers = new HashMap<>();
+    this.members = new HashMap<>();
     this.instance = HazelcastInstanceProvider.getInstance();
     this.statusTopic = instance.getTopic(STATUS_TOPIC);
     this.statusTopic.addMessageListener(new StatusMessageListener());
@@ -143,6 +145,7 @@ public class HazelcastExecutorService extends CmdletExecutorService {
         ITopic<Serializable> topic = instance.getTopic(WORKER_TOPIC_PREFIX + worker.getUuid());
         masterToWorkers.put(worker.getUuid(), topic);
         scheduledCmdlets.put(worker.getUuid(), new HashSet<Long>());
+        members.put(worker.getUuid(), worker);
       }
     }
 
@@ -151,6 +154,7 @@ public class HazelcastExecutorService extends CmdletExecutorService {
       Member member = membershipEvent.getMember();
       if (masterToWorkers.containsKey(member.getUuid())) {
         masterToWorkers.get(member.getUuid()).destroy();
+        members.remove(member.getUuid());
       }
       //Todo: recover
     }

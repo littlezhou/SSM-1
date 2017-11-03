@@ -17,21 +17,13 @@
  */
 package org.smartdata.server.engine.cmdlet.agent;
 
-import java.util.List;
 
-/**
- * Information for cmdlet dispatching.
- */
-public class DispatchInfo {
-  public enum Policy {
+public enum CmdletDispatchPolicy {
     ANY,
     PREFER_AGENT,
     PREFER_REMOTE_SSM,
-    PREFER_LOCAL,
-    MUST_AGENT,
-    MUST_REMOTE_SSM,
-    MUST_LOCAL
-  }
-
-  private List<Policy> preferedTypes;
+    PREFER_LOCAL;
+//    MUST_AGENT,
+//    MUST_REMOTE_SSM,
+//    MUST_LOCAL;
 }
