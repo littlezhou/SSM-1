@@ -105,7 +105,7 @@ public class CmdletDispatcher {
     }
     index++;
     ExecutorType[] tryOrder;
-    switch (cmdlet.getDispPolicy()) {
+    switch (policy) {
       case PREFER_LOCAL:
         execType = ExecutorType.LOCAL;
         tryOrder = new ExecutorType[]
