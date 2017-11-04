@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CmdletDispatcher {
   private static final Logger LOG = LoggerFactory.getLogger(CmdletDispatcher.class);
-  private final Queue<Long> pendingCmdlets;
+  private Queue<Long> pendingCmdlets;
   private final CmdletManager cmdletManager;
   private final List<Long> runningCmdlets;
   private final Map<Long, LaunchCmdlet> idToLaunchCmdlet;
@@ -79,8 +79,6 @@ public class CmdletDispatcher {
     this.index = 0;
 
     schExecService = Executors.newScheduledThreadPool(1);
-    schExecService.scheduleAtFixedRate(
-        new DispatchTask(this), 200, 100, TimeUnit.MILLISECONDS);
   }
 
   public void registerExecutorService(CmdletExecutorService executorService) {
@@ -224,12 +222,14 @@ public class CmdletDispatcher {
       }
 
       if (roundIdx % 30 == 0) {
+        roundIdx++;
         upDateCmdExecSrvInsts();
       }
 
+      LaunchCmdlet launchCmdlet;
       while (dispatcher.canDispatchMore()) {
         try {
-          LaunchCmdlet launchCmdlet = getNextCmdletToRun();
+          launchCmdlet = getNextCmdletToRun();
           if (launchCmdlet == null) {
             break;
           } else {
@@ -249,5 +249,14 @@ public class CmdletDispatcher {
         p.onPreDispatch(action);
       }
     }
+  }
+
+  public void start() {
+    schExecService.scheduleAtFixedRate(
+        new DispatchTask(this), 200, 100, TimeUnit.MILLISECONDS);
+  }
+
+  public void stop() {
+    schExecService.shutdown();
   }
 }

@@ -92,6 +92,7 @@ public class CmdletManager extends AbstractService {
   private Map<String, Long> fileLocks;
   private ListMultimap<String, ActionScheduler> schedulers = ArrayListMultimap.create();
   private List<ActionSchedulerService> schedulerServices = new ArrayList<>();
+  private long totalScheduled = 0;
 
   public CmdletManager(ServerContext context) {
     super(context);
@@ -276,12 +277,14 @@ public class CmdletManager extends AbstractService {
     for (ActionSchedulerService s : schedulerServices) {
       s.start();
     }
+    dispatcher.start();
     LOG.info("Started.");
   }
 
   @Override
   public void stop() throws IOException {
     LOG.info("Stopping ...");
+    dispatcher.stop();
     for (int i = schedulerServices.size() - 1; i >= 0; i--) {
       schedulerServices.get(i).stop();
     }
@@ -967,6 +970,7 @@ public class CmdletManager extends AbstractService {
         int nScheduled;
         do {
           nScheduled = scheduleCmdlet();
+          totalScheduled += nScheduled;
         } while (nScheduled != 0);
       } catch (IOException e) {
         LOG.error("Exception when Scheduling Cmdlet. "
