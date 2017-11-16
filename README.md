@@ -120,6 +120,30 @@ SSM uses SQL database as its backend metastore. The following two databases were
 **TiDB** : TiDB instance can be embedded into SSM for convenience of deployment. Independent TiDB deployment is also supported.
 Please ref. [SSM Deployment Guide](https://github.com/Intel-bigdata/SSM/blob/trunk/docs/ssm-deployment-guide.md) for more details.
 
+Contributors
+------------
+- Wei, Zhou         ([littlezhou](https://github.com/littlezhou))
+- Qiyuan, Gong      ([qiyuangong](https://github.com/qiyuangong))
+- Huafeng, Wang     ([huafengw](https://github.com/huafengw))
+- Yi, Chen          ([ChenSammi](https://github.com/ChenSammi))
+- Kai, Zheng        ([drankye](https://github.com/drankye))
+- Shunyang, Yao     ([timmyyao](https://github.com/timmyyao))
+- Zhen, Du          ([duzhen1996](https://github.com/duzhen1996))
+- ZhiQiang, Zhang   ([zhiqiangx](https://github.com/zhiqiangx))
+- Tianlun, Zhang    ([manuzhang](https://github.com/manuzhang))
+- Yanping, You      ([yanpingyou](https://github.com/yanpingyou))
+- Feilong, He       ([PHILO-HE](https://github.com/PHILO-HE))
+- Jie, Tao          ([taojieterry](https://github.com/taojieterry))
+- Tianlong, Xu      ([tianlong12](https://github.com/tianlong12))
+- Chen, Feng        ([AlienYvonne](https://github.com/AlienYvonne))
+- Yao, Chen         ([chenyao1](https://github.com/chenyao1))
+- Anyang, Wang      ([wayblink](https://github.com/wayblink))
+- Yuxuan, Pan       ([pyx1990](https://github.com/pyx1990))
+- Jiajia, Li        ([plusplusjiajia](https://github.com/plusplusjiajia))
+- ([pobei](https://github.com/pobei))
+- Lin, Zeng         ([gnillor](https://github.com/gnillor))
+- Weijun, Pang      ([ypang2017](https://github.com/ypang2017))
+
 How to Contribute
 ------------
 We welcome your feedback and contributions. Please feel free to fire issues or push PRs, we'll respond soon. Note the project is evolving very fast. 
