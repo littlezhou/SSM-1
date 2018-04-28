@@ -884,6 +884,26 @@ public class SmartRuleVisitTranslator extends SmartRuleBaseVisitor<TreeNode> {
           return new NodeTransResult(virTab, realParas.formatParameters());
         }
 
+        if (p.getPropertyName().equals("accessCountMax")) {
+          String rid = "";
+          if (transCtx != null) {
+            rid = transCtx.getRuleId() + "_";
+          }
+          String virTab = "VIR_ACC_CNT_TAB_" + rid + "accessCount_"
+              + realParas.getValues().get(0).toString();
+          if (!tempTableNames.contains(virTab)) {
+            tempTableNames.add(virTab);
+            sqlStatements.add("DROP TABLE IF EXISTS " + virTab + ";");
+            sqlStatements.add("$@genVirtualAccessCountTable(" + virTab + ")");
+            dynamicParameters.put(virTab, Arrays.asList(realParas.getValues(), virTab));
+          }
+          String mstr = virTab + "_max_" + realParas.getValues().get(1).toString();
+          sqlStatements.add("$@genVirtualAccessCountTableMaxValue(" + mstr + ")");
+          dynamicParameters.put(mstr, Arrays.asList(realParas.getValues(), virTab));
+          procAcc = true;
+          return new NodeTransResult(null, realParas.formatParameters());
+        }
+
         return new NodeTransResult(p.getTableName(), realParas.formatParameters());
       }
     }

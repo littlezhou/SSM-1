@@ -143,6 +143,14 @@ public class RuleExecutor implements Runnable {
     }
   }
 
+  public String genVirtualAccessCountTableMaxValue(List<Object> parameters) {
+    List<Object> paraList = (List<Object>) parameters.get(0);
+    String table = (String) parameters.get(1);
+    Long num = (Long) paraList.get(1);
+    String sql0 = "SELECT count FROM " + table + " WHERE "
+    return null;
+  }
+
   public String genVirtualAccessCountTable(List<Object> parameters) {
     List<Object> paraList = (List<Object>) parameters.get(0);
     String newTable = (String) parameters.get(1);
