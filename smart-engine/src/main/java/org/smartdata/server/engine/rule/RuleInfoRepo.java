@@ -49,8 +49,8 @@ public class RuleInfoRepo {
   }
 
   public RuleInfo getRuleInfo() {
-    rwl.readLock().lock();
     try {
+      rwl.readLock().lock();
       return ruleInfo.newCopy();
     } finally {
       rwl.readLock().unlock();
@@ -62,8 +62,8 @@ public class RuleInfoRepo {
   }
 
   public void disable() throws IOException {
-    rwl.writeLock().lock();
     try {
+      rwl.writeLock().lock();
       changeRuleState(RuleState.DISABLED);
     } finally {
       rwl.writeLock().unlock();
@@ -71,8 +71,8 @@ public class RuleInfoRepo {
   }
 
   public void delete() throws IOException {
-    rwl.writeLock().lock();
     try {
+      rwl.writeLock().lock();
       changeRuleState(RuleState.DELETED);
     } finally {
       rwl.writeLock().unlock();
@@ -81,8 +81,8 @@ public class RuleInfoRepo {
 
   public RuleExecutor activate(RuleManager ruleManager)
       throws IOException {
-    rwl.writeLock().lock();
     try {
+      rwl.writeLock().lock();
       changeRuleState(RuleState.ACTIVE);
       return doLaunchExecutor(ruleManager);
     } finally {
@@ -92,8 +92,8 @@ public class RuleInfoRepo {
 
   public RuleExecutor launchExecutor(RuleManager ruleManager)
       throws IOException {
-    rwl.writeLock().lock();
     try {
+      rwl.writeLock().lock();
       return doLaunchExecutor(ruleManager);
     } finally {
       rwl.writeLock().unlock();
@@ -102,8 +102,8 @@ public class RuleInfoRepo {
 
   public boolean updateRuleInfo(RuleState rs, long lastCheckTime,
       long checkedCount, int cmdletsGen) throws IOException {
-    rwl.writeLock().lock();
     try {
+      rwl.writeLock().lock();
       boolean ret = true;
       changeRuleState(rs, false);
       ruleInfo.updateRuleInfo(rs, lastCheckTime, checkedCount, cmdletsGen);
