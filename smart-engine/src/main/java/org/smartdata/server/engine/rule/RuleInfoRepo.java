@@ -49,10 +49,12 @@ public class RuleInfoRepo {
   }
 
   public RuleInfo getRuleInfo() {
-    lockRead();
-    RuleInfo ret = ruleInfo.newCopy();
-    unlockRead();
-    return ret;
+    rwl.readLock().lock();
+    try {
+      return ruleInfo.newCopy();
+    } finally {
+      rwl.readLock().unlock();
+    }
   }
 
   public RuleInfo getRuleInfoRef() {
@@ -60,47 +62,47 @@ public class RuleInfoRepo {
   }
 
   public void disable() throws IOException {
-    lockWrite();
+    rwl.writeLock().lock();
     try {
       changeRuleState(RuleState.DISABLED);
     } finally {
-      unlockWrite();
+      rwl.writeLock().unlock();
     }
   }
 
   public void delete() throws IOException {
-    lockWrite();
+    rwl.writeLock().lock();
     try {
       changeRuleState(RuleState.DELETED);
     } finally {
-      unlockWrite();
+      rwl.writeLock().unlock();
     }
   }
 
   public RuleExecutor activate(RuleManager ruleManager)
       throws IOException {
-    lockWrite();
+    rwl.writeLock().lock();
     try {
       changeRuleState(RuleState.ACTIVE);
       return doLaunchExecutor(ruleManager);
     } finally {
-      unlockWrite();
+      rwl.writeLock().unlock();
     }
   }
 
   public RuleExecutor launchExecutor(RuleManager ruleManager)
       throws IOException {
-    lockWrite();
+    rwl.writeLock().lock();
     try {
       return doLaunchExecutor(ruleManager);
     } finally {
-      unlockWrite();
+      rwl.writeLock().unlock();
     }
   }
 
   public boolean updateRuleInfo(RuleState rs, long lastCheckTime,
       long checkedCount, int cmdletsGen) throws IOException {
-    lockWrite();
+    rwl.writeLock().lock();
     try {
       boolean ret = true;
       changeRuleState(rs, false);
@@ -115,7 +117,7 @@ public class RuleInfoRepo {
       }
       return ret;
     } finally {
-      unlockWrite();
+      rwl.writeLock().unlock();
     }
   }
 
@@ -217,21 +219,5 @@ public class RuleInfoRepo {
 
     throw new IOException("Rule state transition " + oldState
         + " -> " + newState + " is not supported");  // TODO: unsupported
-  }
-
-  private void lockWrite() {
-    rwl.writeLock().lock();
-  }
-
-  private void unlockWrite() {
-    rwl.writeLock().unlock();
-  }
-
-  private void lockRead() {
-    rwl.readLock().lock();
-  }
-
-  private void unlockRead() {
-    rwl.readLock().unlock();
   }
 }
