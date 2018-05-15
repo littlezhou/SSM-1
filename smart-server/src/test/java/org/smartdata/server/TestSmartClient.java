@@ -28,6 +28,7 @@ public class TestSmartClient extends MiniSmartClusterHarness {
 
   @Test
   public void testGetFileState() throws Exception {
+    waitTillSSMExitSafeMode();
     MetaStore metaStore = ssm.getMetaStore();
     String path = "/file1";
     FileState fileState = new NormalFileState(path);
