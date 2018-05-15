@@ -232,7 +232,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
         } catch (MetaStoreException e) {
           LOG.error("Exception occurred while scheduling " + action, e);
           containerFilesLock.remove(containerFilePath);
-          return ScheduleResult.FAIL;
+          return ScheduleResult.RETRY;
         }
       }
       fileContainerInfoMap.put(actionId, fileContainerInfo);
