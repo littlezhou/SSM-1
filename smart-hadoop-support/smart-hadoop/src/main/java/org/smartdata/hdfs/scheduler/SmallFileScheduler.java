@@ -208,6 +208,8 @@ public class SmallFileScheduler extends ActionSchedulerService {
         }
       } else {
         // Lock the container file
+        actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+            + "\nFile " + containerFilePath + " try 0 ...");
         containerFilesLock.put(containerFilePath, 0);
       }
 
