@@ -74,6 +74,8 @@ public class TestSmallFileRead extends MiniSmartClusterHarness {
         return;
       } else if (state == CmdletState.FAILED) {
         Assert.fail("Compact failed.");
+      } else {
+        Assert.fail("Failed to execute compact: " + state);
       }
     }
   }
