@@ -75,7 +75,10 @@ public class TestSmallFileRead extends MiniSmartClusterHarness {
       } else if (state == CmdletState.FAILED) {
         Assert.fail("Compact failed.");
       } else {
-        Assert.fail("Failed to execute compact: " + state);
+        Assert.fail("Failed to execute compact: " + state
+            + " info: " + cmdletManager.getCmdletInfo(cmdId)
+            + " action: " + cmdletManager.getActionInfo(
+            cmdletManager.getCmdletInfo(cmdId).getAids().get(0)));
       }
     }
   }

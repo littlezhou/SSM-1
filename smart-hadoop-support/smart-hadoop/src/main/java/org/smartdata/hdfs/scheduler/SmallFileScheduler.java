@@ -195,6 +195,7 @@ public class SmallFileScheduler extends ActionSchedulerService {
         if (retryNum > MAX_RETRY_COUNT) {
           LOG.error(
               "This container file: " + containerFilePath + " is locked, failed.");
+          actionInfo.setResult("File " + containerFilePath + " is locked " + retryNum);
           return ScheduleResult.FAIL;
         } else {
           LOG.warn(
