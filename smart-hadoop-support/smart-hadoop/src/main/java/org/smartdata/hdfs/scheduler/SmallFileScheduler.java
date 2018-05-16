@@ -215,7 +215,8 @@ public class SmallFileScheduler extends ActionSchedulerService {
       } catch (MetaStoreException e) {
         LOG.error("Failed to get file info of the container file: "
             + containerFilePath);
-        return ScheduleResult.FAIL;
+        containerFilesLock.remove(containerFilePath);
+        return ScheduleResult.RETRY;
       }
 
       // Get file container info of small files
