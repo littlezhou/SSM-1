@@ -217,10 +217,16 @@ public class SmallFileScheduler extends ActionSchedulerService {
       long offset;
       try {
         FileInfo containerFileInfo = metaStore.getFile(containerFilePath);
+        actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+            + "\nA0 ");
         offset = (containerFileInfo == null) ? 0L : containerFileInfo.getLength();
+        actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+            + "\nA1 ");
       } catch (MetaStoreException e) {
         LOG.error("Failed to get file info of the container file: "
             + containerFilePath);
+        actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+                + "\nA ");
         containerFilesLock.remove(containerFilePath);
         return ScheduleResult.RETRY;
       }
@@ -229,8 +235,12 @@ public class SmallFileScheduler extends ActionSchedulerService {
       List<String> smallFileList = smallFilesMap.get(actionId);
       Map<String, FileContainerInfo> fileContainerInfo = new HashMap<>(
           smallFileList.size());
+      actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+          + "\nB0 ");
       for (String filePath : smallFileList) {
         try {
+          actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+              + "\n\t" + filePath);
           FileInfo fileInfo = metaStore.getFile(filePath);
           long fileLen = fileInfo.getLength();
           fileContainerInfo.put(
@@ -238,11 +248,15 @@ public class SmallFileScheduler extends ActionSchedulerService {
           offset += fileLen;
         } catch (MetaStoreException e) {
           LOG.error("Exception occurred while scheduling " + action, e);
+          actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+              + "\nB ");
           containerFilesLock.remove(containerFilePath);
           return ScheduleResult.RETRY;
         }
       }
       fileContainerInfoMap.put(actionId, fileContainerInfo);
+      actionInfo.setResult((actionInfo.getResult() == null ? "" : actionInfo.getResult())
+          + "\nC ");
 
       return ScheduleResult.SUCCESS;
     } else if (ACTIONS.get(0).equals(actionInfo.getActionName())) {
