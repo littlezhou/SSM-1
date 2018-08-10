@@ -237,7 +237,7 @@ public class AgentMaster {
 
     private boolean handleAgentMessage(Object message) {
       if (message instanceof RegisterNewAgent) {
-        getSelf().forward(((RegisterNewAgent) message).getId(), getContext());
+        getSelf().forward(new RegisterAgent(((RegisterNewAgent) message).getId()), getContext());
         return true;
       } else if (message instanceof RegisterAgent) {
         RegisterAgent register = (RegisterAgent) message;
