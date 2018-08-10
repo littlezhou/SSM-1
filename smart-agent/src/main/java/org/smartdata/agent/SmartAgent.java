@@ -88,6 +88,7 @@ public class SmartAgent implements StatusReporter {
     }
     String agentAddress = AgentUtils.getAgentAddress(conf);
     LOG.info("Agent address: " + agentAddress);
+    RegisterNewAgent.getInstance(agentAddress + "-" + System.currentTimeMillis());
 
     HadoopUtil.setSmartConfByHadoop(conf);
     agent.authentication(conf);
