@@ -43,7 +43,8 @@ public class ExecutorScheduler {
     if (startDelay < 0) {
       startDelay = 0;
     }
-    long every = si.getEvery();
+    si.setFirstExecTime(now + startDelay);
+    long every = si.getMininalEvery();
     if (every <= 0) {
       every = 5000;
     }

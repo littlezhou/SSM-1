@@ -300,7 +300,7 @@ public class RuleManager extends AbstractService {
         TranslateResult tr = ruleExecutor.getTranslateResult();
         TimeBasedScheduleInfo si = tr.getTbScheduleInfo();
         long lastCheckTime = rule.getLastCheckTime();
-        long every = si.getEvery();
+        long every = si.getBaseEvery();
         long now = System.currentTimeMillis();
         if ((now - lastCheckTime) > every) {
           int delay = new Random().nextInt(5000);

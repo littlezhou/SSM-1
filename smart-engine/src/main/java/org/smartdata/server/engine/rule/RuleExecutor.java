@@ -320,6 +320,10 @@ public class RuleExecutor implements Runnable {
       exitSchedule();
     }
 
+    if (!tr.getTbScheduleInfo().isExecutable(startCheckTime)) {
+      return;
+    }
+
     List<RuleExecutorPlugin> plugins = RuleExecutorPluginManager.getPlugins();
 
     long rid = ctx.getRuleId();
@@ -404,7 +408,7 @@ public class RuleExecutor implements Runnable {
         exitSchedule();
       }
 
-      if (endProcessTime + scheduleInfo.getEvery() > scheduleInfo.getEndTime()) {
+      if (endProcessTime + scheduleInfo.getBaseEvery() > scheduleInfo.getEndTime()) {
         LOG.info("Rule " + ctx.getRuleId() + " exit rule executor due to finished");
         ruleManager.updateRuleInfo(rid, RuleState.FINISHED, System.currentTimeMillis(), 0, 0);
         exitSchedule();
