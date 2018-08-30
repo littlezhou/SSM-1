@@ -119,7 +119,8 @@ public class MoveFileAction extends AbstractMoveFileAction {
       }
 
       boolean closed = dfsClient.isFileClosed(fileName);
-      if (!closed || fileStatus.getFileId() != movePlan.getFileId()
+      if (!closed
+          || (movePlan.getFileId() != 0 && fileStatus.getFileId() != movePlan.getFileId())
           || fileStatus.getLen() != movePlan.getFileLength()
           || fileStatus.getModificationTime() != movePlan.getModificationTime()) {
         return true;

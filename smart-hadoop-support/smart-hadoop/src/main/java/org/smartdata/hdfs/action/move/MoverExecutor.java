@@ -104,7 +104,7 @@ public class MoverExecutor {
       throw new RuntimeException("File path is a directory.");
     }
 
-    if (fileStatus.getFileId() != plan.getFileId()
+    if ((plan.getFileId() != 0 && fileStatus.getFileId() != plan.getFileId())
         || fileStatus.getLen() < plan.getFileLength()) {
       throw new RuntimeException("File has been changed after this action generated.");
     }
