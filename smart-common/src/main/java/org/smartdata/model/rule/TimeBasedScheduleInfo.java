@@ -61,11 +61,11 @@ public class TimeBasedScheduleInfo {
   }
 
   public long getMininalEvery() {
-    long ret = 0;
-    for (int i = 0; i < every.length; i += 2) {
-      ret += every[i];
+    if (every.length == 1) {
+      return every[0];
+    } else {
+      return every[0] > every[2] ? every[2] : every[0];
     }
-    return ret;
   }
 
   public long getBaseEvery() {
