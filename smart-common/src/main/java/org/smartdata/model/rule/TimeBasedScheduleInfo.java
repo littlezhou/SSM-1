@@ -24,7 +24,7 @@ public class TimeBasedScheduleInfo {
   private long[] every;
   private long subScheduleTime;
 
-  private long firstExecTime;
+  private long firstCheckTime;
 
   public TimeBasedScheduleInfo() {
     every = new long[1];
@@ -88,15 +88,15 @@ public class TimeBasedScheduleInfo {
     return subScheduleTime;
   }
 
-  public long getFirstExecTime() {
-    return firstExecTime;
+  public long getFirstCheckTime() {
+    return firstCheckTime;
   }
 
-  public void setFirstExecTime(long firstExecTime) {
-    this.firstExecTime = firstExecTime;
+  public void setFirstCheckTime(long firstCheckTime) {
+    this.firstCheckTime = firstCheckTime;
   }
 
   public boolean isExecutable(long now) {
-    return every.length <= 1 || every[0] == 0 || (now - firstExecTime) % every[0] < every[1];
+    return every.length <= 1 || every[0] == 0 || (now - firstCheckTime) % every[0] < every[1] + 50;
   }
 }
